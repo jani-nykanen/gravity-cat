@@ -66,7 +66,5 @@ export class Game extends Program {
         canvas.fillEllipse(192 - 3, 48 - 3, 29);
 
         canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Base), Flip.None, 0, 0);
-        canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Terrain), Flip.None, 0, 32);
-
     }
 }

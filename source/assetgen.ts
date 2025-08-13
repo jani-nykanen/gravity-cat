@@ -24,13 +24,18 @@ const PALETTE_TABLE : number[] = [
 
     0b100010000, // 7 Dark brown
     0b111111100, // 8 Bright yellow
+
+    0b110100010, // 9 Darker beige
+    0b111110100, // A Beige
+
+
 ];
 
 
 const GAME_ART_PALETTE_TABLE : (string | undefined) [] = [
 
-    "1002", "1002", "1002", "0000", "0000", "0000", "0000", "0000",
-    "1002", "1002", "1002", "0000", "0000", "0000", "0000", "0000",
+    "1002", "1002", "1002", "109A", "109A", "109A", "0008", "0008",
+    "1002", "1002", "1002", "109A", "109A", "109A", "0008", "0008",
     "1056", "1056", "1058", "1076", "1056", "1056", "1078", "1078",
     "1078", "1078", "1078", "1078", "1078", "1078", "1078", "1078", 
 ];
@@ -91,7 +96,7 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
             }
         }
     }
-
+    
     canvas.drawBitmap(bmpBase, Flip.None, 16, 0, 0, 16, 64, 16);
 
     assets.addBitmap(BitmapIndex.Terrain, canvas.toBitmap());
