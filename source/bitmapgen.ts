@@ -22,7 +22,7 @@ const convertTile = (imageData : ImageData,
         for (let x : number = dx; x < dx + dw; ++ x) {
 
             const i : number = y*offset + x;
-            const colorIndex : number = (imageData.data[i*4]/85) | 0;
+            const colorIndex : number = Math.round(imageData.data[i*4]/85);
             const paletteEntry : number[] = paletteLookUp[paletteIndices[colorTable[colorIndex] ?? 0] ?? 0] ?? [];
 
             for (let j : number = 0; j < 4; ++ j) {
@@ -50,9 +50,9 @@ export const applyPalette = (image : Bitmap,
     const h : number = (canvas.height/8) | 0;
 
     let j : number = 0;
-    for (let y = 0; y < h; ++ y) {
+    for (let y : number = 0; y < h; ++ y) {
 
-        for (let x = 0; x < w; ++ x) {
+        for (let x : number = 0; x < w; ++ x) {
 
             if (j >= colorTables.length) {
 
