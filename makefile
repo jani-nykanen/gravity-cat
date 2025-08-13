@@ -26,7 +26,7 @@ server:
 .PHONY: levels
 levels:
 	echo -n "export const LEVEL_DATA : string[] = [\n" > $(LEVEL_SRC_PATH)
-	$(mapconv) $(LEVEL_FOLDER)/test.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/1.tmx >> $(LEVEL_SRC_PATH)
 	echo -n "]" >> $(LEVEL_SRC_PATH)
 
 

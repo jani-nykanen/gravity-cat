@@ -31,6 +31,6 @@ def parse_file(inp : str) -> str:
             out += parse_layer(data.text)
             break
         break
-    return out + "\""
+    return out + "\","
 
 print(parse_file(sys.argv[1]))
