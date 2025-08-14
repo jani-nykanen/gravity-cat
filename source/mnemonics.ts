@@ -9,7 +9,7 @@ export const enum BitmapIndex {
     Base = 3,
 
     Terrain = 4,
-    Player = 5,
+    Figures = 5,
 }
 
 

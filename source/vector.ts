@@ -5,14 +5,12 @@ export class Vector {
 
     public x : number;
     public y : number;
-    public z : number;
 
 
-    constructor(x : number = 0.0, y : number = 0.0, z : number = 0.0) {
+    constructor(x : number = 0.0, y : number = 0.0) {
 
         this.x = x;
         this.y = y;
-        this.z = z;
     }
 
 
@@ -20,13 +18,12 @@ export class Vector {
 
         this.x = 0.0;
         this.y = 0.0;
-        this.z = 0.0;
     }
 
 
     public length() : number {
 
-        return Math.hypot(this.x, this.y, this.z);
+        return Math.hypot(this.x, this.y);
     }
 
 
@@ -47,13 +44,12 @@ export class Vector {
 
         this.x /= len;
         this.y /= len;
-        this.z /= len;
     }
 
 
     public clone() : Vector {
 
-        return new Vector(this.x, this.y, this.z);
+        return new Vector(this.x, this.y);
     }
 
 
@@ -61,7 +57,6 @@ export class Vector {
 
         this.x = v.x;
         this.y = v.y;
-        this.z = v.z;
     }
 
 
@@ -69,4 +64,5 @@ export class Vector {
 
         return new Vector();
     }
+    
 }

@@ -45,10 +45,7 @@ export class Game extends Program {
 
     public onUpdate() : void {
         
-        if (this.controller.getAction(Controls.Accept).state == InputState.Pressed) {
-
-            this.audio.playSample(this.assets.getSample(SampleIndex.Jump), 0.60);
-        }
+        this.puzzle.update(this.controller, this.audio, this.assets, this.tick);
     }
 
 
@@ -58,13 +55,10 @@ export class Game extends Program {
 
         canvas.clearScreen(85, 170, 255);
 
+        this.puzzle.setCamera(canvas);
         this.puzzle.draw(canvas, this.assets);
 
-        canvas.setColor(255, 182, 0);
-        canvas.fillEllipse(192, 48, 32);
-        canvas.setColor(255, 255, 146);
-        canvas.fillEllipse(192 - 3, 48 - 3, 29);
-
-        canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Base), Flip.None, 0, 0);
+        canvas.moveTo();
+        canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Figures), Flip.None, 0, 0);
     }
 }

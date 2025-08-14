@@ -113,6 +113,26 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 }
 
 
+const generateFigureBitmaps = (assets : Assets, bmpBase : Bitmap) : void => {
+
+    const FRAME_LOOKUP : number[] = [0, 1, 0, 2];
+
+    const canvas : RenderTarget = new RenderTarget(64, 32, false);
+
+    for (let y : number = 0; y < 2; ++ y) {
+
+        for (let x : number = 0; x < 4; ++ x) {
+
+            const sx : number = y*24 + FRAME_LOOKUP[x]*8;
+
+            canvas.drawBitmap(bmpBase, Flip.None, x*16, y*16, sx, 0, 8, 16);
+            canvas.drawBitmap(bmpBase, Flip.Horizontal, x*16 + 8, y*16, sx, 0, 8, 16);
+        }
+    }
+    assets.addBitmap(BitmapIndex.Figures, canvas.toBitmap());
+}
+
+
 const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
 
     const sampleJump = audio.createSample(
@@ -146,6 +166,7 @@ export const generateAssets = (assets : Assets, audio : AudioPlayer) : void => {
 
     // Other bitmaps
     generateTerrainBitmap(assets, bmpGameArt);
+    generateFigureBitmaps(assets, bmpGameArt);
 
     // Sounds
     generateSamples(assets, audio);
