@@ -5,6 +5,7 @@ import { AudioPlayer } from "./audioplayer.js";
 import { Assets } from "./assets.js";
 import { Bitmap, Flip, RenderTarget } from "./gfx.js";
 import { BitmapIndex } from "./mnemonics.js";
+import { Puzzle } from "./puzzle.js";
 
 
 export const enum ObjectType {
@@ -38,7 +39,7 @@ export class PuzzleObject {
     constructor(x : number, y : number, type : ObjectType) {
 
         this.pos = new Vector(x, y);
-        this.renderPos = new Vector(x*TILE_WIDTH, y*TILE_HEIGHT);
+        this.renderPos = this.pos.clone();
 
         this.moveDirection = Vector.zero();
 
@@ -48,7 +49,37 @@ export class PuzzleObject {
     }
 
 
-    public update(controller : Controller, audio : AudioPlayer, assets : Assets, tick : number) : void {
+    public updateMovement(moveTimer : number) : void {
+
+        this.renderPos.x = this.pos.x + moveTimer*this.moveDirection.x;
+        this.renderPos.y = this.pos.y + moveTimer*this.moveDirection.y;
+    }
+
+
+    public haltMovement(puzzle : Puzzle) : boolean {
+
+        if (!this.moving) {
+
+            return false;
+        }
+
+        this.pos.x += this.moveDirection.x;
+        this.pos.y += this.moveDirection.y;
+        this.renderPos.makeEqual(this.pos);
+
+        this.moving = false;
+
+        if (this.move(puzzle, this.moveDirection.x, this.moveDirection.y)) {
+
+            return true;
+        }
+        this.moveDirection.zero();
+
+        return false;
+    }
+
+
+    public updateAnimation(tick : number) : void {
 
         const ANIMATION_SPEED : number = 1.0/30.0;
 
@@ -68,8 +99,8 @@ export class PuzzleObject {
 
         const frame : number = (this.animationTimer*4) | 0;
 
-        const dx : number = this.renderPos.x;
-        const dy : number = this.renderPos.y;
+        const dx : number = this.renderPos.x*TILE_WIDTH;
+        const dy : number = this.renderPos.y*TILE_HEIGHT;
 
         switch (this.type) {
 
@@ -89,5 +120,36 @@ export class PuzzleObject {
         default:
             break;
         }
+    }
+
+
+    public overlay(o : PuzzleObject) : boolean {
+
+        return (this.pos.x | 0) == (o.pos.x | 0) &&
+               (this.pos.y | 0) == (o.pos.y | 0);   
+    }
+
+
+    public isLocatedIn(x : number, y : number) : boolean {
+
+        return (this.pos.x | 0) == (x | 0) &&
+               (this.pos.y | 0) == (y | 0); 
+    }
+
+
+    public move(puzzle : Puzzle, dirx : number, diry : number) : boolean {
+
+        if (this.moving || (dirx == 0 && diry == 0)) {
+
+            return false;
+        }
+
+        if (puzzle.isTileFree(this, this.pos.x + dirx, this.pos.y + diry)) {
+
+            this.moving = true;
+            this.moveDirection = new Vector(dirx, diry);
+            return true;
+        }
+        return false;
     }
 }

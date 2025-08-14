@@ -22,8 +22,8 @@ export const enum SampleIndex {
 export const enum Controls {
 
     Right = 0,
-    Left = 1,
-    Up = 2,
+    Up = 1,
+    Left = 2,
     Down = 3,
 
     Accept = 4,
