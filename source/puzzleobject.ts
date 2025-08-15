@@ -6,6 +6,7 @@ import { Assets } from "./assets.js";
 import { Bitmap, Flip, RenderTarget } from "./gfx.js";
 import { BitmapIndex } from "./mnemonics.js";
 import { Puzzle } from "./puzzle.js";
+import { Direction, directionToVector } from "./direction.js";
 
 
 export const enum ObjectType {
@@ -17,8 +18,9 @@ export const enum ObjectType {
 };
 
 
-const OBJECT_IMMOVABLE : boolean[] = [false, false, false, true];
-const OBJECT_PASSTHROUGH : boolean[] = [false, false, false, true];
+const IMMOVABLE_LOOKUP : boolean[] = [false, false, false, true];
+const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true];
+const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false];
 
 
 export class PuzzleObject {
@@ -29,6 +31,7 @@ export class PuzzleObject {
 
     private animationTimer : number;
 
+    private orientation : Direction = Direction.Down;
     private moveDirection : Vector;
     private rotation : number = 0.0;
     private moving : boolean = false;
@@ -37,6 +40,10 @@ export class PuzzleObject {
     private dying : boolean = false;
 
     public readonly type : ObjectType;
+
+    public readonly smashable : boolean;
+    public readonly passable : boolean;
+    public readonly immovable : boolean;
 
 
     constructor(x : number, y : number, type : ObjectType) {
@@ -48,7 +55,18 @@ export class PuzzleObject {
 
         this.type = type;
 
+        this.passable = PASSTHROUGH_LOOKUP[type] ?? false;
+        this.immovable = IMMOVABLE_LOOKUP[type] ?? false;
+        this.smashable = SMASHABLE_LOOKUP[type] ?? false;
+
         this.animationTimer = (x % 2 == y % 2) ? 0.0 : 0.5;
+    }
+
+
+    private overlayObject(o : PuzzleObject) : boolean {
+
+        return (this.pos.x | 0) == (o.pos.x | 0) &&
+               (this.pos.y | 0) == (o.pos.y | 0);   
     }
 
 
@@ -61,7 +79,7 @@ export class PuzzleObject {
 
     public haltMovement() : void {
 
-        if (!this.moving) {
+        if (!this.exist || !this.moving) {
 
             return;
         }
@@ -69,6 +87,22 @@ export class PuzzleObject {
         this.moving = false;
         this.moveDirection.zero();
         this.renderPos.makeEqual(this.pos);
+    }
+
+
+    public checkOverlay(o : PuzzleObject) : boolean {
+
+        if (!this.exist || !o.exist || !o.moving || !this.overlayObject(o)) {
+
+            return false;
+        }
+
+        if (SMASHABLE_LOOKUP[this.type] ?? false) {
+
+            this.exist = false;
+            console.log(`Killed an object with the type id ${this.type}`);
+        }
+        return true;
     }
 
 
@@ -87,6 +121,11 @@ export class PuzzleObject {
 
     public draw(canvas : RenderTarget, assets : Assets) : void {
 
+        if (!this.exist) {
+
+            return;
+        }
+
         const bmpBase : Bitmap = assets.getBitmap(BitmapIndex.Base);
         const bmpFigures : Bitmap = assets.getBitmap(BitmapIndex.Figures);
 
@@ -95,13 +134,15 @@ export class PuzzleObject {
         const dx : number = this.renderPos.x*TILE_WIDTH;
         const dy : number = this.renderPos.y*TILE_HEIGHT;
 
+        const orientationShift : Vector = directionToVector(this.orientation);
+
         switch (this.type) {
 
         case ObjectType.Human:
         case ObjectType.Player:
 
             canvas.drawBitmap(bmpFigures, Flip.None, 
-                dx, dy + 1,
+                dx + orientationShift.x , dy + orientationShift.y,
                 frame*16, (this.type == ObjectType.Human ? 16 : 0), 16, 16, 16, 16,
                 8, 8, this.rotation);
             break;
@@ -133,50 +174,38 @@ export class PuzzleObject {
     }
 
 
-    public overlay(o : PuzzleObject) : boolean {
-
-        return (this.pos.x | 0) == (o.pos.x | 0) &&
-               (this.pos.y | 0) == (o.pos.y | 0);   
-    }
-
-
     public isLocatedIn(x : number, y : number) : boolean {
+
+        if (this.passable) {
+
+            return false;
+        }
 
         return (this.pos.x | 0) == (x | 0) &&
                (this.pos.y | 0) == (y | 0); 
     }
 
 
-    public move(puzzle : Puzzle, dirx : number, diry : number) : boolean {
+    public move(puzzle : Puzzle, direction : Direction) : boolean {
 
-        if (this.moving || this.immovable() || (dirx == 0 && diry == 0)) {
+        if (!this.exist || this.moving || this.immovable || direction == Direction.None) {
 
             return false;
         }
 
-        this.rotation = -Math.atan2(diry, dirx) + Math.PI/2;
+        this.orientation = direction;
+        this.rotation = direction*Math.PI/2;
 
-        if (puzzle.isTileFree(this.pos.x + dirx, this.pos.y + diry)) {
+        const dir : Vector = directionToVector(direction);
+        if (puzzle.isTileFree(this.pos.x + dir.x, this.pos.y + dir.y)) {
 
+            this.moveDirection.makeEqual(dir);
             this.moving = true;
-            this.moveDirection = new Vector(dirx, diry);
-            this.pos.x += dirx;
-            this.pos.y += diry;
+            this.pos.x += this.moveDirection.x;
+            this.pos.y += this.moveDirection.y;
 
             return true;
         }
         return false;
-    }
-
-
-    public passthrough() : boolean {
-
-        return OBJECT_PASSTHROUGH[this.type] ?? false;
-    }
-
-
-    public immovable() : boolean {
-
-        return OBJECT_IMMOVABLE[this.type] ?? false;
     }
 }

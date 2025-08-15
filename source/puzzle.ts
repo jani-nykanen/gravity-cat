@@ -7,10 +7,7 @@ import { ObjectType, PuzzleObject } from "./puzzleobject.js";
 import { ActionState, Controller, InputState } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
 import { Vector } from "./vector.js";
-
-
-const MOVEDIR_X_LOOKUP : number[] = [1, 0, -1, 0];
-const MOVEDIR_Y_LOOKUP : number[] = [0, -1, 0, 1];
+import { Direction } from "./direction.js";
 
 
 export class Puzzle {
@@ -24,7 +21,7 @@ export class Puzzle {
     private moveTimer : number = 0.0;
     private moveTimerSpeed : number = 0.0;
     private somethingMoving : boolean = false;
-    private moveDirection : Vector = Vector.zero();
+    private moveDirection : Direction = Direction.None;
 
     public readonly width : number;
     public readonly height : number;
@@ -69,8 +66,7 @@ export class Puzzle {
             return;
         }
 
-        let dirx : number = 0;
-        let diry : number = 0;
+        let dir : Direction = Direction.None;
         let maxTimestamp : number = 0;
         let directionPressed : boolean = false;
 
@@ -81,8 +77,7 @@ export class Puzzle {
                 state.timestamp >= maxTimestamp) {
 
                 maxTimestamp = state.timestamp;
-                dirx = MOVEDIR_X_LOOKUP[i];
-                diry = MOVEDIR_Y_LOOKUP[i];
+                dir = (i + 1) as Direction;
 
                 directionPressed = true;
             }
@@ -90,12 +85,12 @@ export class Puzzle {
 
         if (directionPressed) {
 
-            this.initiateMovement(dirx, diry);
+            this.initiateMovement(dir);
         }
     }
 
 
-    private initiateMovement(dirx : number, diry : number) : boolean {
+    private initiateMovement(dir : Direction) : boolean {
 
         this.somethingMoving = false;
         let somethingNewMoved : boolean = false;
@@ -104,7 +99,7 @@ export class Puzzle {
             somethingNewMoved = false;
             for (const o of this.objects) {
 
-                if (o.move(this, dirx, diry)) {
+                if (o.move(this, dir)) {
 
                     this.somethingMoving = true;
                     somethingNewMoved = true;
@@ -116,8 +111,7 @@ export class Puzzle {
         if (this.somethingMoving) {
 
             this.moveTimer = 0.0;
-            this.moveDirection.x = dirx;
-            this.moveDirection.y = diry;
+            this.moveDirection = dir;
         }
         return this.somethingMoving;
     }
@@ -140,14 +134,26 @@ export class Puzzle {
             this.somethingMoving = false;
             this.moveTimer -= 1.0;
 
+            // Check for overlays
+            for (let i : number = 0; i < this.objects.length; ++ i) {
+
+                for (let j : number = i + 1; j < this.objects.length; ++ j) {
+
+                    this.objects[i].checkOverlay(this.objects[j]);
+                    this.objects[j].checkOverlay(this.objects[i]);
+                }
+            }
+
+            // Halt movement
             for (const o of this.objects) {
 
                 o.haltMovement();
             }
 
-            if (!this.initiateMovement(this.moveDirection.x, this.moveDirection.y)) {
+            // Check if movement still continues
+            if (!this.initiateMovement(this.moveDirection)) {
 
-                this.moveDirection.zero();
+                this.moveDirection = Direction.None;
                 this.moveTimerSpeed = 0.0;
                 this.moveTimer = 0.0;
             }
@@ -216,12 +222,6 @@ export class Puzzle {
 
         for (const o of this.objects) {
 
-            if (o.passthrough()) {
-
-                continue;
-            }
-
-            // TODO: Some objects may overlap
             if (o.isLocatedIn(x, y)) {
                 
                 return false;
