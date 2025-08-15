@@ -13,10 +13,12 @@ export const enum ObjectType {
     Player = 0,
     Crate = 1,
     Human = 2,
-    // etc
-
+    LuckyClover = 3,
 };
 
+
+const OBJECT_IMMOVABLE : boolean[] = [false, false, false, true];
+const OBJECT_PASSTHROUGH : boolean[] = [false, false, false, true];
 
 
 export class PuzzleObject {
@@ -28,12 +30,13 @@ export class PuzzleObject {
     private animationTimer : number;
 
     private moveDirection : Vector;
+    private rotation : number = 0.0;
     private moving : boolean = false;
 
     private exist : boolean = true;
     private dying : boolean = false;
 
-    private type : ObjectType;
+    public readonly type : ObjectType;
 
 
     constructor(x : number, y : number, type : ObjectType) {
@@ -51,31 +54,21 @@ export class PuzzleObject {
 
     public updateMovement(moveTimer : number) : void {
 
-        this.renderPos.x = this.pos.x + moveTimer*this.moveDirection.x;
-        this.renderPos.y = this.pos.y + moveTimer*this.moveDirection.y;
+        this.renderPos.x = this.pos.x - (1.0 - moveTimer)*this.moveDirection.x;
+        this.renderPos.y = this.pos.y - (1.0 - moveTimer)*this.moveDirection.y;
     }
 
 
-    public haltMovement(puzzle : Puzzle) : boolean {
+    public haltMovement() : void {
 
         if (!this.moving) {
 
-            return false;
+            return;
         }
-
-        this.pos.x += this.moveDirection.x;
-        this.pos.y += this.moveDirection.y;
-        this.renderPos.makeEqual(this.pos);
 
         this.moving = false;
-
-        if (this.move(puzzle, this.moveDirection.x, this.moveDirection.y)) {
-
-            return true;
-        }
         this.moveDirection.zero();
-
-        return false;
+        this.renderPos.makeEqual(this.pos);
     }
 
 
@@ -109,7 +102,8 @@ export class PuzzleObject {
 
             canvas.drawBitmap(bmpFigures, Flip.None, 
                 dx, dy + 1,
-                frame*16, (this.type == ObjectType.Human ? 16 : 0), 16, 16);
+                frame*16, (this.type == ObjectType.Human ? 16 : 0), 16, 16, 16, 16,
+                8, 8, this.rotation);
             break;
 
         case ObjectType.Crate:
@@ -117,9 +111,25 @@ export class PuzzleObject {
             canvas.drawBitmap(bmpBase, Flip.None, dx, dy, 0, 32, 16, 16);
             break;
 
+        case ObjectType.LuckyClover:
+
+            canvas.drawBitmap(bmpBase, Flip.None, dx, dy, 48, 32, 16, 16);
+            break;
+        
+
         default:
             break;
         }
+    }
+
+
+    public drawDebug(canvas : RenderTarget) : void {
+
+        const dx : number = this.pos.x*TILE_WIDTH;
+        const dy : number = this.pos.y*TILE_HEIGHT;
+
+        canvas.setColor(255, 0, 0);
+        canvas.fillRect(dx, dy, TILE_WIDTH, TILE_HEIGHT);
     }
 
 
@@ -139,17 +149,34 @@ export class PuzzleObject {
 
     public move(puzzle : Puzzle, dirx : number, diry : number) : boolean {
 
-        if (this.moving || (dirx == 0 && diry == 0)) {
+        if (this.moving || this.immovable() || (dirx == 0 && diry == 0)) {
 
             return false;
         }
 
-        if (puzzle.isTileFree(this, this.pos.x + dirx, this.pos.y + diry)) {
+        this.rotation = -Math.atan2(diry, dirx) + Math.PI/2;
+
+        if (puzzle.isTileFree(this.pos.x + dirx, this.pos.y + diry)) {
 
             this.moving = true;
             this.moveDirection = new Vector(dirx, diry);
+            this.pos.x += dirx;
+            this.pos.y += diry;
+
             return true;
         }
         return false;
+    }
+
+
+    public passthrough() : boolean {
+
+        return OBJECT_PASSTHROUGH[this.type] ?? false;
+    }
+
+
+    public immovable() : boolean {
+
+        return OBJECT_IMMOVABLE[this.type] ?? false;
     }
 }

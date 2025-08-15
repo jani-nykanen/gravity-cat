@@ -6,9 +6,8 @@ import { TILE_WIDTH, TILE_HEIGHT } from "./tilesize.js";
 import { ObjectType, PuzzleObject } from "./puzzleobject.js";
 import { ActionState, Controller, InputState } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
+import { Vector } from "./vector.js";
 
-
-const MOVE_SPEED : number = 1.0/8.0;
 
 const MOVEDIR_X_LOOKUP : number[] = [1, 0, -1, 0];
 const MOVEDIR_Y_LOOKUP : number[] = [0, -1, 0, 1];
@@ -23,7 +22,9 @@ export class Puzzle {
     private objects : PuzzleObject[];
 
     private moveTimer : number = 0.0;
+    private moveTimerSpeed : number = 0.0;
     private somethingMoving : boolean = false;
+    private moveDirection : Vector = Vector.zero();
 
     public readonly width : number;
     public readonly height : number;
@@ -89,38 +90,65 @@ export class Puzzle {
 
         if (directionPressed) {
 
+            this.initiateMovement(dirx, diry);
+        }
+    }
+
+
+    private initiateMovement(dirx : number, diry : number) : boolean {
+
+        this.somethingMoving = false;
+        let somethingNewMoved : boolean = false;
+        do {
+
+            somethingNewMoved = false;
             for (const o of this.objects) {
 
                 if (o.move(this, dirx, diry)) {
 
                     this.somethingMoving = true;
-                    this.moveTimer = 0.0;
+                    somethingNewMoved = true;
                 }
             }
         }
+        while (somethingNewMoved);
+
+        if (this.somethingMoving) {
+
+            this.moveTimer = 0.0;
+            this.moveDirection.x = dirx;
+            this.moveDirection.y = diry;
+        }
+        return this.somethingMoving;
     }
 
 
     private updateMovement(tick : number) : void {
 
-        this.moveTimer += MOVE_SPEED*tick;
+        const GRAVITY : number = 1.0/120.0;
+        const MAX_GRAVITY : number = 1.0/2.0;
+
+        this.moveTimerSpeed += GRAVITY*tick;
+        if (this.moveTimerSpeed > MAX_GRAVITY) {
+
+            this.moveTimerSpeed = MAX_GRAVITY;
+        }
+
+        this.moveTimer += this.moveTimerSpeed*tick;
         if(this.moveTimer >= 1.0) {
 
             this.somethingMoving = false;
+            this.moveTimer -= 1.0;
+
             for (const o of this.objects) {
 
-                if (o.haltMovement(this)) {
-
-                    this.somethingMoving = true;
-                }
+                o.haltMovement();
             }
 
-            if (this.somethingMoving) {
+            if (!this.initiateMovement(this.moveDirection.x, this.moveDirection.y)) {
 
-                this.moveTimer -= 1.0;
-            }
-            else {
-
+                this.moveDirection.zero();
+                this.moveTimerSpeed = 0.0;
                 this.moveTimer = 0.0;
             }
             return;
@@ -162,6 +190,11 @@ export class Puzzle {
 
         this.terrainMap.draw(canvas, bmpTerrain);
 
+//        for (const o of this.objects) {
+//
+//            o.drawDebug(canvas);
+//        }
+
         for (const o of this.objects) {
 
             o.draw(canvas, assets);
@@ -169,7 +202,7 @@ export class Puzzle {
     } 
 
 
-    public isTileFree(self : PuzzleObject, x : number, y : number) : boolean {
+    public isTileFree(x : number, y : number) : boolean {
         
         if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
 
@@ -183,10 +216,11 @@ export class Puzzle {
 
         for (const o of this.objects) {
 
-            if (o === self) {
+            if (o.passthrough()) {
 
                 continue;
             }
+
             // TODO: Some objects may overlap
             if (o.isLocatedIn(x, y)) {
                 

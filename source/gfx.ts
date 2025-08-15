@@ -162,7 +162,7 @@ export class RenderTarget {
         dh |= 0;
 
         const ctx : CanvasRenderingContext2D = this.ctx;
-        const transform : boolean = flip != Flip.None;
+        const transform : boolean = flip != Flip.None || rotation !== undefined;
 
          if (transform) {
 
@@ -184,7 +184,7 @@ export class RenderTarget {
 
         if (rotation !== undefined) {
 
-            ctx.translate((centerx + dx) | 0, (centery + dy) | 0);
+            ctx.translate(centerx + dx, centery + dy);
             ctx.rotate(-rotation);
             
             dx = -centerx;
