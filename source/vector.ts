@@ -60,6 +60,13 @@ export class Vector {
     }
 
 
+    public setValues(x : number, y : number) : void {
+
+        this.x = x;
+        this.y = y;
+    }
+
+
     static zero() : Vector {
 
         return new Vector();

@@ -3,11 +3,43 @@ import { TerrainMap } from "./terrainmap.js";
 import { Assets } from "./assets.js";
 import { BitmapIndex } from "./mnemonics.js";
 import { TILE_WIDTH, TILE_HEIGHT } from "./tilesize.js";
-import { ObjectType, PuzzleObject } from "./puzzleobject.js";
+import { ObjectType, PuzzleObject, PuzzleObjectState } from "./puzzleobject.js";
 import { ActionState, Controller, InputState } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
 import { Vector } from "./vector.js";
 import { Direction } from "./direction.js";
+
+
+
+class PuzzleState {
+
+
+    private objects : PuzzleObjectState[];
+
+
+    constructor(initialObjects : PuzzleObject[]) {
+
+        this.objects = new Array<PuzzleObjectState> ();
+        for (const o of initialObjects) {
+
+            if (!o.doesExist()) {
+
+                continue;
+            }
+            this.objects.push(o.toState());
+        }
+    }
+
+
+    public recover(objects : PuzzleObject[]) : void {
+
+        objects.length = 0;
+        for (const o of this.objects) {
+
+            objects.push(new PuzzleObject(o.x, o.y, o.type, o.orientation));
+        }
+    }
+}
 
 
 export class Puzzle {
@@ -17,6 +49,9 @@ export class Puzzle {
     private terrainMap : TerrainMap;
 
     private objects : PuzzleObject[];
+
+    private initialState : PuzzleState;
+    private states : PuzzleState[];
 
     private moveTimer : number = 0.0;
     private moveTimerSpeed : number = 0.0;
@@ -37,6 +72,9 @@ export class Puzzle {
 
         this.objects = new Array<PuzzleObject> ();
         this.parseObjects();
+
+        this.initialState = new PuzzleState(this.objects);
+        this.states = new Array<PuzzleState> ();
     }
 
 
@@ -85,7 +123,10 @@ export class Puzzle {
 
         if (directionPressed) {
 
-            this.initiateMovement(dir);
+            if (this.initiateMovement(dir)) {
+
+                this.states.push(new PuzzleState(this.objects));
+            }
         }
     }
 
@@ -196,11 +237,6 @@ export class Puzzle {
 
         this.terrainMap.draw(canvas, bmpTerrain);
 
-//        for (const o of this.objects) {
-//
-//            o.drawDebug(canvas);
-//        }
-
         for (const o of this.objects) {
 
             o.draw(canvas, assets);
@@ -227,6 +263,39 @@ export class Puzzle {
                 return false;
             }
         }
+        return true;
+    }
+
+
+    public restart() : void {
+
+        if (this.states.length > 0) {
+
+            this.states.push(new PuzzleState(this.objects));
+        }
+
+        this.somethingMoving = false;
+        this.moveTimerSpeed = 0.0;
+        this.moveDirection = Direction.None;
+
+        this.initialState.recover(this.objects);
+    }
+
+
+    public undo() : boolean {
+
+        if (this.states.length == 0) {
+
+            return false;
+        }
+
+        const newState : PuzzleState = this.states.pop()!;
+        newState.recover(this.objects);
+
+        this.somethingMoving = false;
+        this.moveTimerSpeed = 0.0;
+        this.moveDirection = Direction.None;
+
         return true;
     }
 }

@@ -27,4 +27,6 @@ export const enum Controls {
     Down = 3,
 
     Accept = 4,
+    Restart = 5,
+    Undo = 6
 }

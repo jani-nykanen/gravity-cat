@@ -23,6 +23,9 @@ const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true];
 const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false];
 
 
+export type PuzzleObjectState = { x : number, y : number, orientation : number, type : ObjectType };
+
+
 export class PuzzleObject {
 
 
@@ -31,22 +34,23 @@ export class PuzzleObject {
 
     private animationTimer : number;
 
-    private orientation : Direction = Direction.Down;
+    private oldOrientation : Direction;
+    private orientation : Direction;
     private moveDirection : Vector;
-    private rotation : number = 0.0;
     private moving : boolean = false;
 
     private exist : boolean = true;
     private dying : boolean = false;
+    private type : ObjectType;
 
-    public readonly type : ObjectType;
 
     public readonly smashable : boolean;
     public readonly passable : boolean;
     public readonly immovable : boolean;
 
 
-    constructor(x : number, y : number, type : ObjectType) {
+    constructor(x : number, y : number, type : ObjectType, 
+        orientation : Direction = Direction.Down) {
 
         this.pos = new Vector(x, y);
         this.renderPos = this.pos.clone();
@@ -54,10 +58,12 @@ export class PuzzleObject {
         this.moveDirection = Vector.zero();
 
         this.type = type;
+        this.orientation = orientation;
+        this.oldOrientation = orientation;
 
-        this.passable = PASSTHROUGH_LOOKUP[type] ?? false;
-        this.immovable = IMMOVABLE_LOOKUP[type] ?? false;
-        this.smashable = SMASHABLE_LOOKUP[type] ?? false;
+        this.smashable = SMASHABLE_LOOKUP[this.type] ?? false;
+        this.passable = PASSTHROUGH_LOOKUP[this.type] ?? false;
+        this.immovable = IMMOVABLE_LOOKUP[this.type] ?? false;
 
         this.animationTimer = (x % 2 == y % 2) ? 0.0 : 0.5;
     }
@@ -135,6 +141,7 @@ export class PuzzleObject {
         const dy : number = this.renderPos.y*TILE_HEIGHT;
 
         const orientationShift : Vector = directionToVector(this.orientation);
+        const rotation : number = this.orientation*Math.PI/2;
 
         switch (this.type) {
 
@@ -144,7 +151,7 @@ export class PuzzleObject {
             canvas.drawBitmap(bmpFigures, Flip.None, 
                 dx + orientationShift.x , dy + orientationShift.y,
                 frame*16, (this.type == ObjectType.Human ? 16 : 0), 16, 16, 16, 16,
-                8, 8, this.rotation);
+                8, 8, rotation);
             break;
 
         case ObjectType.Crate:
@@ -193,8 +200,8 @@ export class PuzzleObject {
             return false;
         }
 
+        this.oldOrientation = this.orientation;
         this.orientation = direction;
-        this.rotation = direction*Math.PI/2;
 
         const dir : Vector = directionToVector(direction);
         if (puzzle.isTileFree(this.pos.x + dir.x, this.pos.y + dir.y)) {
@@ -207,5 +214,22 @@ export class PuzzleObject {
             return true;
         }
         return false;
+    }
+
+
+    public doesExist() : boolean {
+
+        return this.exist;
+    }
+
+
+    public toState() : PuzzleObjectState {
+
+        return {
+            x: this.pos.x - this.moveDirection.x, 
+            y: this.pos.y - this.moveDirection.y,
+            orientation: this.oldOrientation,
+            type: this.type
+        };
     }
 }
