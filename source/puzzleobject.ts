@@ -107,8 +107,12 @@ export class PuzzleObject {
 
             this.exist = false;
             console.log(`Killed an object with the type id ${this.type}`);
+
+            // TODO: This does not always result a failure (i.e boulder crushing
+            // a crate)
+            return true;
         }
-        return true;
+        return false;
     }
 
 

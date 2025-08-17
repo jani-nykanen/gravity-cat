@@ -10,6 +10,8 @@ import { Vector } from "./vector.js";
 import { Direction } from "./direction.js";
 
 
+const FAILURE_SHAKE_TIME : number = 30.0;
+
 
 class PuzzleState {
 
@@ -58,6 +60,9 @@ export class Puzzle {
     private somethingMoving : boolean = false;
     private moveDirection : Direction = Direction.None;
 
+    private failed : boolean = false;
+    private failureTimer : number = 0.0;
+
     public readonly width : number;
     public readonly height : number;
 
@@ -99,7 +104,7 @@ export class Puzzle {
 
     private control(controller : Controller) : void {
 
-        if (this.somethingMoving) {
+        if (this.somethingMoving || this.failed) {
 
             return;
         }
@@ -180,8 +185,16 @@ export class Puzzle {
 
                 for (let j : number = i + 1; j < this.objects.length; ++ j) {
 
-                    this.objects[i].checkOverlay(this.objects[j]);
-                    this.objects[j].checkOverlay(this.objects[i]);
+                    // Note: failure = case 1 || case 2 does not work here
+                    // since both functions cause side effects
+                    let failure : boolean = this.objects[i].checkOverlay(this.objects[j]);
+                    failure = this.objects[j].checkOverlay(this.objects[i]) || failure;
+
+                    if (failure) {
+
+                        this.failed = true;
+                        this.failureTimer = FAILURE_SHAKE_TIME;
+                    }
                 }
             }
 
@@ -210,13 +223,37 @@ export class Puzzle {
 
     public setCamera(canvas : RenderTarget) : void {
 
+        const FAILURE_SHAKE : number = 4.0;
+
+        let shakeX : number = 0.0;
+        let shakeY : number = 0.0;
+        if (this.failureTimer > 0.0) {
+
+            shakeX = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
+            shakeY = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
+        }
+
         canvas.moveTo(
-            canvas.width/2 - this.width*TILE_WIDTH/2, 
-            canvas.height/2 - this.height*TILE_HEIGHT/2);
+            canvas.width/2 - this.width*TILE_WIDTH/2 + shakeX, 
+            canvas.height/2 - this.height*TILE_HEIGHT/2 + shakeY);
     }
 
 
     public update(controller : Controller, audio : AudioPlayer, assets : Assets, tick : number) : void {
+
+        if (this.failed) {
+
+            this.failureTimer -= tick;
+            if (this.failureTimer <= 0.0) {
+
+                if (!this.undo()) {
+
+                    this.restart(true);
+                }
+                this.failed = false;
+                this.failureTimer = 0.0;
+            }
+        }
 
         this.control(controller);
         if (this.somethingMoving) {
@@ -267,9 +304,9 @@ export class Puzzle {
     }
 
 
-    public restart() : void {
+    public restart(noPush : boolean = false) : void {
 
-        if (this.states.length > 0) {
+        if (!noPush && this.states.length > 0) {
 
             this.states.push(new PuzzleState(this.objects));
         }
@@ -277,6 +314,8 @@ export class Puzzle {
         this.somethingMoving = false;
         this.moveTimerSpeed = 0.0;
         this.moveDirection = Direction.None;
+        this.failed = false;
+        this.failureTimer = 0.0;
 
         this.initialState.recover(this.objects);
     }
@@ -295,6 +334,8 @@ export class Puzzle {
         this.somethingMoving = false;
         this.moveTimerSpeed = 0.0;
         this.moveDirection = Direction.None;
+        this.failed = false;
+        this.failureTimer = 0.0;
 
         return true;
     }
