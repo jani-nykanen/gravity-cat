@@ -223,19 +223,9 @@ export class Puzzle {
 
     public setCamera(canvas : RenderTarget) : void {
 
-        const FAILURE_SHAKE : number = 4.0;
-
-        let shakeX : number = 0.0;
-        let shakeY : number = 0.0;
-        if (this.failureTimer > 0.0) {
-
-            shakeX = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
-            shakeY = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
-        }
-
         canvas.moveTo(
-            canvas.width/2 - this.width*TILE_WIDTH/2 + shakeX, 
-            canvas.height/2 - this.height*TILE_HEIGHT/2 + shakeY);
+            canvas.width/2 - this.width*TILE_WIDTH/2, 
+            canvas.height/2 - this.height*TILE_HEIGHT/2);
     }
 
 
@@ -270,13 +260,32 @@ export class Puzzle {
 
     public draw(canvas : RenderTarget, assets : Assets) : void {
 
-        const bmpTerrain : Bitmap = assets.getBitmap(BitmapIndex.Terrain);
+        const FAILURE_SHAKE : number = 4.0;
 
+        let shakeX : number = 0.0;
+        let shakeY : number = 0.0;
+        if (this.failureTimer > 0.0) {
+
+            shakeX = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
+            shakeY = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
+        }
+
+        canvas.move(shakeX, shakeY);
+
+        const bmpTerrain : Bitmap = assets.getBitmap(BitmapIndex.Terrain);
         this.terrainMap.draw(canvas, bmpTerrain);
 
         for (const o of this.objects) {
 
             o.draw(canvas, assets);
+        }
+
+        canvas.move(-shakeX, -shakeY);
+        
+        const bmpCross : Bitmap = assets.getBitmap(BitmapIndex.Cross);        
+        for (const o of this.objects) {
+
+            o.drawFailure(canvas, bmpCross);
         }
     } 
 

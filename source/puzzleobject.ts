@@ -40,7 +40,7 @@ export class PuzzleObject {
     private moving : boolean = false;
 
     private exist : boolean = true;
-    private dying : boolean = false;
+    private causedFailure : boolean = false;
     private type : ObjectType;
 
 
@@ -106,10 +106,7 @@ export class PuzzleObject {
         if (SMASHABLE_LOOKUP[this.type] ?? false) {
 
             this.exist = false;
-            console.log(`Killed an object with the type id ${this.type}`);
-
-            // TODO: This does not always result a failure (i.e boulder crushing
-            // a crate)
+            this.causedFailure = true;
             return true;
         }
         return false;
@@ -175,13 +172,17 @@ export class PuzzleObject {
     }
 
 
-    public drawDebug(canvas : RenderTarget) : void {
+    public drawFailure(canvas : RenderTarget, bmp : Bitmap) : void {
+        
+        if (!this.causedFailure) {
 
-        const dx : number = this.pos.x*TILE_WIDTH;
-        const dy : number = this.pos.y*TILE_HEIGHT;
+            return;
+        }
+    
+        const dx : number = (this.renderPos.x + 0.5)*TILE_WIDTH - bmp.width/2;
+        const dy : number = (this.renderPos.y + 0.5)*TILE_HEIGHT - bmp.height/2;
 
-        canvas.setColor(255, 0, 0);
-        canvas.fillRect(dx, dy, TILE_WIDTH, TILE_HEIGHT);
+        canvas.drawBitmap(bmp, Flip.None, dx, dy);
     }
 
 

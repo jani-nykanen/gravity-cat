@@ -346,10 +346,52 @@ export class RenderTarget {
     }
 
 
+    public fillCross(dx : number, dy : number, diameter : number, lineWidth : number) : void {
+
+        // Does not work with even widths yet
+        if (lineWidth % 2 == 0) {
+
+            ++ lineWidth;
+        }
+
+        dx = (dx + this.translation.x) | 0;
+        dy = (dy + this.translation.y) | 0;
+
+        diameter |= 0;
+        lineWidth |= 0;
+
+        const ctx : CanvasRenderingContext2D = this.ctx;
+        const offset : number = (lineWidth/2) | 0;
+
+        // Smaller lines
+        for (let y : number = 0; y < offset; ++ y) {
+
+            for (let x : number = 0; x < 2; ++ x) {
+
+                ctx.fillRect(
+                    dx + offset - y + (diameter - 1 - offset*2)*x ,
+                    dy + y, 
+                    1 + y*2, 1);
+                ctx.fillRect(
+                    dx + 1 + y + (diameter - 1 - offset*2)*x, 
+                    dy + diameter - offset + y, 
+                    1 + (offset - 1 - y)*2, 1);
+            }
+        }
+
+        // Main lines
+        for (let y : number = offset; y < diameter - offset; ++ y) {
+
+            ctx.fillRect(dx + y - offset, dy + y, lineWidth, 1);
+            ctx.fillRect(dx + y - offset, dy + diameter - 1 - y, lineWidth, 1);
+        }
+    }
+
+
     public move(dx : number, dy : number) : void {
 
-        this.translation.x = dx;
-        this.translation.y = dy;
+        this.translation.x += dx;
+        this.translation.y += dy;
     }
 
 

@@ -69,12 +69,12 @@ export class Game extends Program {
         
         const canvas : RenderTarget = this.canvas;
 
-        canvas.clearScreen(85, 170, 255);
+        canvas.clearScreen(73, 182, 255);
 
         this.puzzle.setCamera(canvas);
         this.puzzle.draw(canvas, this.assets);
 
         canvas.moveTo();
-        canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Figures), Flip.None, 0, 0);
+        // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Cross), Flip.None, 0, 0);
     }
 }

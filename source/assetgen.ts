@@ -113,7 +113,7 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 }
 
 
-const generateFigureBitmaps = (assets : Assets, bmpBase : Bitmap) : void => {
+const generateFigureBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 
     const FRAME_LOOKUP : number[] = [0, 1, 0, 2];
 
@@ -130,6 +130,30 @@ const generateFigureBitmaps = (assets : Assets, bmpBase : Bitmap) : void => {
         }
     }
     assets.addBitmap(BitmapIndex.Figures, canvas.toBitmap());
+}
+
+
+const generateCrossBitmap = (assets : Assets) : void => {
+
+    const DEPTH : number = 4;
+    const DIAMETER : number = 32;
+    const LINE_WIDTH : number = 9;
+
+    const canvas : RenderTarget = new RenderTarget(48, 48, false);
+
+    const dx : number = 8;
+    const dy : number = 8;
+
+    canvas.setColor(143, 36, 0);
+    for (let y : number = 0; y < DEPTH; ++ y) {
+
+        canvas.fillCross(dx, dy + (y + 1), DIAMETER, LINE_WIDTH);
+    }
+
+    canvas.setColor(255, 73, 0);
+    canvas.fillCross(dx, dy, DIAMETER, LINE_WIDTH);
+
+    assets.addBitmap(BitmapIndex.Cross, canvas.toBitmap());
 }
 
 
@@ -166,7 +190,8 @@ export const generateAssets = (assets : Assets, audio : AudioPlayer) : void => {
 
     // Other bitmaps
     generateTerrainBitmap(assets, bmpGameArt);
-    generateFigureBitmaps(assets, bmpGameArt);
+    generateFigureBitmap(assets, bmpGameArt);
+    generateCrossBitmap(assets);
 
     // Sounds
     generateSamples(assets, audio);
