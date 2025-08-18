@@ -8,6 +8,7 @@ import { ActionState, Controller, InputState } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
 import { Vector } from "./vector.js";
 import { Direction } from "./direction.js";
+import { ParticleGenerator } from "./particle.js";
 
 
 const FAILURE_SHAKE_TIME : number = 30.0;
@@ -33,12 +34,12 @@ class PuzzleState {
     }
 
 
-    public recover(objects : PuzzleObject[]) : void {
+    public recover(objects : PuzzleObject[], particles : ParticleGenerator) : void {
 
         objects.length = 0;
         for (const o of this.objects) {
 
-            objects.push(new PuzzleObject(o.x, o.y, o.type, o.orientation));
+            objects.push(new PuzzleObject(o.x, o.y, o.type, o.orientation, particles));
         }
     }
 }
@@ -51,6 +52,7 @@ export class Puzzle {
     private terrainMap : TerrainMap;
 
     private objects : PuzzleObject[];
+    private particles : ParticleGenerator;
 
     private initialState : PuzzleState;
     private states : PuzzleState[];
@@ -75,6 +77,7 @@ export class Puzzle {
 
         this.terrainMap = new TerrainMap(this.tiles, this.width, this.height);
 
+        this.particles = new ParticleGenerator();
         this.objects = new Array<PuzzleObject> ();
         this.parseObjects();
 
@@ -96,7 +99,7 @@ export class Puzzle {
                 }
 
                 const objectType : ObjectType = (objectID - 2) as ObjectType;
-                this.objects.push(new PuzzleObject(x, y, objectType));
+                this.objects.push(new PuzzleObject(x, y, objectType, Direction.Down, this.particles));
             }
         }
     }
@@ -326,7 +329,7 @@ export class Puzzle {
         this.failed = false;
         this.failureTimer = 0.0;
 
-        this.initialState.recover(this.objects);
+        this.initialState.recover(this.objects, this.particles);
     }
 
 
@@ -338,7 +341,7 @@ export class Puzzle {
         }
 
         const newState : PuzzleState = this.states.pop()!;
-        newState.recover(this.objects);
+        newState.recover(this.objects, this.particles);
 
         this.somethingMoving = false;
         this.moveTimerSpeed = 0.0;

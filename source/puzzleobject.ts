@@ -7,6 +7,7 @@ import { Bitmap, Flip, RenderTarget } from "./gfx.js";
 import { BitmapIndex } from "./mnemonics.js";
 import { Puzzle } from "./puzzle.js";
 import { Direction, directionToVector } from "./direction.js";
+import { ParticleGenerator } from "./particle.js";
 
 
 export const enum ObjectType {
@@ -43,6 +44,7 @@ export class PuzzleObject {
     private causedFailure : boolean = false;
     private type : ObjectType;
 
+    private readonly particles : ParticleGenerator;
 
     public readonly smashable : boolean;
     public readonly passable : boolean;
@@ -50,7 +52,7 @@ export class PuzzleObject {
 
 
     constructor(x : number, y : number, type : ObjectType, 
-        orientation : Direction = Direction.Down) {
+        orientation : Direction, particles : ParticleGenerator) {
 
         this.pos = new Vector(x, y);
         this.renderPos = this.pos.clone();
@@ -66,6 +68,14 @@ export class PuzzleObject {
         this.immovable = IMMOVABLE_LOOKUP[this.type] ?? false;
 
         this.animationTimer = (x % 2 == y % 2) ? 0.0 : 0.5;
+
+        this.particles = particles;
+    }
+
+
+    private spawnBloodParticles(amount : number) : void {
+
+        // TODO: Implement
     }
 
 

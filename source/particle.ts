@@ -2,6 +2,8 @@ import { Vector } from "./vector.js";
 import { Direction, directionToVector } from "./direction.js";
 import { approachValue } from "./utility.js";
 import { Bitmap, RenderTarget } from "./gfx.js";
+import { Assets } from "./assets.js";
+import { BitmapIndex } from "./mnemonics.js";
 
 
 export const enum ParticleType {
@@ -21,7 +23,9 @@ export class Particle {
 
     private timer : number = 0.0;
 
+    private diameter : number = 0;
     private textureSource : Vector;
+    private colorStr : string = "white";
     private type : ParticleType = ParticleType.SingleColor;
 
     private exists : boolean;
@@ -40,9 +44,22 @@ export class Particle {
     }
 
 
+    private drawSingleColorParticle(canvas : RenderTarget) : void {
+
+        const dx : number = this.pos.x - this.diameter/2;
+        const dy : number = this.pos.y - this.diameter/2;
+
+        canvas.setColorString(this.colorStr);
+        canvas.fillRect(dx, dy, this.diameter, this.diameter);
+    }
+
+
     public spawn(
         x : number, y : number, speedx : number, speedy : number, existTime : number, 
-        type : ParticleType, textureSource? : Vector) : void {
+        type : ParticleType, specialParam : Vector | string) : void {
+
+        const MIN_DIAMETER : number = 1;
+        const MAX_DIAMETER : number = 4;
 
         this.pos.setValues(x, y);
         this.speed.setValues(speedx, speedy);
@@ -50,9 +67,18 @@ export class Particle {
         this.timer = existTime;
         this.type = type;
 
-        if (textureSource !== undefined) {
+        if (type == ParticleType.SingleColor) {
 
-            this.textureSource.makeEqual(textureSource);
+            this.diameter = MIN_DIAMETER + ((Math.random()*(MAX_DIAMETER - MIN_DIAMETER)) | 0);
+        }
+        
+        if (typeof(specialParam) === "string") {
+
+            this.colorStr = specialParam;
+        }
+        else {
+
+            this.textureSource.makeEqual(specialParam as Vector);
         }
     }
 
@@ -93,6 +119,68 @@ export class Particle {
             return;
         }
 
-        // TODO: Implement
+        if (this.type == ParticleType.SingleColor) {
+
+            this.drawSingleColorParticle(canvas);
+            return;
+        }
+
+        // TODO: Texture particles!
+    }
+
+
+    public doesExist() : boolean {
+
+        return this.exists;
+    }
+}
+
+
+
+export class ParticleGenerator {
+
+    
+    private particles : Particle[];
+
+
+    constructor() {
+
+        this.particles = new Array<Particle> ();
+    }
+
+
+    public next() : Particle {
+
+        for (const o of this.particles) {
+
+            if (!o.doesExist()) {
+
+                return o;
+            }
+        } 
+
+        const p : Particle = new Particle();
+        this.particles.push(p);
+
+        return p;
+    }
+
+
+    public update(gravityDirection : Direction, tick : number) : void {
+
+        for (const p of this.particles) {
+
+            p.update(gravityDirection, tick);
+        }
+    }
+
+
+    public draw(canvas : RenderTarget, assets : Assets) : void {
+
+        const bmp : Bitmap = assets.getBitmap(BitmapIndex.Figures);
+        for (const p of this.particles) {
+
+            p.draw(canvas, bmp);
+        }
     }
 }
