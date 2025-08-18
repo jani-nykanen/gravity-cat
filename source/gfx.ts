@@ -402,6 +402,12 @@ export class RenderTarget {
     }
 
 
+    public setAlpha(a : number = 1.0) : void {
+
+        this.ctx.globalAlpha = clamp(a, 0.0, 1.0);
+    }
+
+
     public toBitmap() : Bitmap {
 
         return this.canvas;

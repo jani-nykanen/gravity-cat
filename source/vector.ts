@@ -47,6 +47,19 @@ export class Vector {
     }
 
 
+    public rotate(angle : number) : void {
+
+        const s : number = Math.sin(angle);
+        const c : number = Math.cos(angle);
+
+        const x : number = this.x;
+        const y : number = this.y;
+
+        this.x = c*x - s*y;
+        this.y = s*x + c*y;        
+    }
+
+
     public clone() : Vector {
 
         return new Vector(this.x, this.y);

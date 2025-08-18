@@ -11,7 +11,7 @@ import { Direction } from "./direction.js";
 import { ParticleGenerator } from "./particle.js";
 
 
-const FAILURE_SHAKE_TIME : number = 30.0;
+const FAILURE_SHAKE_TIME : number = 45.0;
 
 
 class PuzzleState {
@@ -258,6 +258,8 @@ export class Puzzle {
 
             o.updateAnimation(tick);
         }
+
+        this.particles.update(tick);
     }
 
 
@@ -282,13 +284,12 @@ export class Puzzle {
 
             o.draw(canvas, assets);
         }
+        this.particles.draw(canvas, assets);
 
         canvas.move(-shakeX, -shakeY);
-        
-        const bmpCross : Bitmap = assets.getBitmap(BitmapIndex.Cross);        
         for (const o of this.objects) {
 
-            o.drawFailure(canvas, bmpCross);
+            o.postDraw(canvas, assets);
         }
     } 
 

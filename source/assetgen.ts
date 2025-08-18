@@ -135,14 +135,14 @@ const generateFigureBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 
 const generateCrossBitmap = (assets : Assets) : void => {
 
-    const DEPTH : number = 4;
-    const DIAMETER : number = 32;
-    const LINE_WIDTH : number = 9;
+    const DEPTH : number = 3;
+    const DIAMETER : number = 24;
+    const LINE_WIDTH : number = 7;
 
     const canvas : RenderTarget = new RenderTarget(48, 48, false);
 
-    const dx : number = 8;
-    const dy : number = 8;
+    const dx : number = (48 - DIAMETER)/2;
+    const dy : number = dx;
 
     canvas.setColor(143, 36, 0);
     for (let y : number = 0; y < DEPTH; ++ y) {

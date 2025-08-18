@@ -22,6 +22,7 @@ export class Particle {
     private friction : Vector;
 
     private timer : number = 0.0;
+    private initialTime : number = 0.0;
 
     private diameter : number = 0;
     private textureSource : Vector;
@@ -36,7 +37,7 @@ export class Particle {
         this.pos = Vector.zero();
         this.speed = Vector.zero();
         this.targetSpeed = Vector.zero();
-        this.friction = new Vector(0.125, 0.125);
+        this.friction = new Vector(0.075, 0.075);
 
         this.textureSource = Vector.zero();
 
@@ -55,16 +56,23 @@ export class Particle {
 
 
     public spawn(
-        x : number, y : number, speedx : number, speedy : number, existTime : number, 
+        x : number, y : number, 
+        speedx : number, speedy : number, 
+        gravityDirection : Vector, existTime : number, 
         type : ParticleType, specialParam : Vector | string) : void {
 
         const MIN_DIAMETER : number = 1;
         const MAX_DIAMETER : number = 4;
+        const BASE_GRAVITY : number = 4.0;
 
         this.pos.setValues(x, y);
         this.speed.setValues(speedx, speedy);
+        this.targetSpeed.setValues(
+            gravityDirection.x*BASE_GRAVITY, 
+            gravityDirection.y*BASE_GRAVITY);
 
         this.timer = existTime;
+        this.initialTime = existTime;
         this.type = type;
 
         if (type == ParticleType.SingleColor) {
@@ -80,12 +88,12 @@ export class Particle {
 
             this.textureSource.makeEqual(specialParam as Vector);
         }
+
+        this.exists = true;
     }
 
 
-    public update(gravityDirection : Direction, tick : number) : void {
-
-        const BASE_GRAVITY : number = 4.0;
+    public update(tick : number) : void {
 
         if (!this.exists) {
 
@@ -98,11 +106,6 @@ export class Particle {
             this.exists = false;
             return;
         }
-
-        const gravityVector : Vector = directionToVector(gravityDirection);
-
-        this.targetSpeed.x = gravityVector.x*BASE_GRAVITY;
-        this.targetSpeed.y = gravityVector.y*BASE_GRAVITY;
 
         this.speed.x = approachValue(this.speed.x, this.targetSpeed.x, this.friction.x*tick);
         this.speed.y = approachValue(this.speed.y, this.targetSpeed.y, this.friction.y*tick);
@@ -119,13 +122,22 @@ export class Particle {
             return;
         }
 
+        let alpha : number = 1.0;
+        if (this.timer < this.initialTime/4.0) {
+
+            alpha = this.timer/(this.initialTime/4.0);
+        }
+        canvas.setAlpha(alpha);
+
         if (this.type == ParticleType.SingleColor) {
 
             this.drawSingleColorParticle(canvas);
-            return;
         }
+        else {
 
-        // TODO: Texture particles!
+            // TODO: Texture particles!
+        }
+        canvas.setAlpha();
     }
 
 
@@ -166,11 +178,11 @@ export class ParticleGenerator {
     }
 
 
-    public update(gravityDirection : Direction, tick : number) : void {
+    public update(tick : number) : void {
 
         for (const p of this.particles) {
 
-            p.update(gravityDirection, tick);
+            p.update(tick);
         }
     }
 
