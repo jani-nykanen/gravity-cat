@@ -47,7 +47,7 @@ export class Vector {
     }
 
 
-    public rotate(angle : number) : void {
+    public rotate(angle : number) : Vector {
 
         const s : number = Math.sin(angle);
         const c : number = Math.cos(angle);
@@ -56,7 +56,9 @@ export class Vector {
         const y : number = this.y;
 
         this.x = c*x - s*y;
-        this.y = s*x + c*y;        
+        this.y = s*x + c*y;     
+        
+        return this;
     }
 
 
@@ -73,10 +75,12 @@ export class Vector {
     }
 
 
-    public setValues(x : number, y : number) : void {
+    public setValues(x : number, y : number) : Vector {
 
         this.x = x;
         this.y = y;
+
+        return this;
     }
 
 

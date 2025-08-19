@@ -34,14 +34,16 @@ const PALETTE_TABLE : number[] = [
 
     0b101001000, // E Dark red
     0b111011000, // F Orange
+    0b111101011, // G Bright orange
+    0b100001000, // H Dark orange-ish whatever
 
 ];
 
 
 const GAME_ART_PALETTE_TABLE : (string | undefined) [] = [
 
-    "1002", "1002", "1002", "109A", "109A", "109A", "0008", "0008",
-    "1002", "1002", "1002", "109A", "109A", "109A", "0008", "0008",
+    "1002", "1002", "1002", "109A", "109A", "109A", "0009", "0000",
+    "1002", "1002", "1002", "109A", "109A", "109A", "10HG", "10HG",
     "1056", "1056", "1058", "1076", "1056", "1056", "1078", "1078",
     "1078", "1078", "1078", "1078", "1078", "1078", "1078", "1078", 
     "1079", "1079", "10CA", "10CB", "10CD", "10CD", "1056", "1056", 
@@ -116,6 +118,7 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 const generateFigureBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 
     const FRAME_LOOKUP : number[] = [0, 1, 0, 2];
+    const SHIFT_Y : number[] = [1, 2, 1, 0];
 
     const canvas : RenderTarget = new RenderTarget(64, 32, false);
 
@@ -127,6 +130,11 @@ const generateFigureBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 
             canvas.drawBitmap(bmpBase, Flip.None, x*16, y*16, sx, 0, 8, 16);
             canvas.drawBitmap(bmpBase, Flip.Horizontal, x*16 + 8, y*16, sx, 0, 8, 16);
+
+            if (y == 1) {
+
+                canvas.drawBitmap(bmpBase, Flip.None, x*16 + 5, y*16 + SHIFT_Y[x], 48, 0, 8, 8);
+            }
         }
     }
     assets.addBitmap(BitmapIndex.Figures, canvas.toBitmap());

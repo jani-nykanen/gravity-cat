@@ -23,9 +23,9 @@ const IMMOVABLE_LOOKUP : boolean[] = [false, false, false, true];
 const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true];
 const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false];
 
-const DEATH_COLORS : (string | undefined) [] = ["black", , "#b62400", ];
+const DEATH_COLORS : (string | undefined) [] = ["black", , "#ff2400", ];
 
-const DEATH_TIME : number = 45;
+const DEATH_TIME : number = 20;
 
 
 export type PuzzleObjectState = { x : number, y : number, orientation : number, type : ObjectType };
@@ -36,6 +36,7 @@ export class PuzzleObject {
 
     private pos : Vector;
     private renderPos : Vector;
+    private zindex : number = 0;
 
     private animationTimer : number = 0.0;
     private deathTimer : number = 0.0;
@@ -47,8 +48,6 @@ export class PuzzleObject {
 
     private exist : boolean = true;
     private dying : boolean = false;
-
-    private causedFailure : boolean = false;
     private type : ObjectType;
 
     private readonly particles : ParticleGenerator;
@@ -74,7 +73,7 @@ export class PuzzleObject {
         this.passable = PASSTHROUGH_LOOKUP[this.type] ?? false;
         this.immovable = IMMOVABLE_LOOKUP[this.type] ?? false;
 
-        this.animationTimer = (x % 2 == y % 2) ? 0.0 : 0.5;
+        this.animationTimer = (x % 2 == y % 2) ? 0.0 : 1.0;
 
         this.particles = particles;
     }
@@ -82,27 +81,21 @@ export class PuzzleObject {
 
     private spawnBloodParticles(amount : number, textured : boolean, color : string) : void {
 
-        const H_SPEED_RANGE : number = 3.0;
-        const V_SPEED_MIN : number = -3.0;
-        const V_SPEED_MAX : number = 1.0;
+        const H_SPEED_RANGE : number = 2.5;
+        const V_SPEED_MIN : number = -4.0;
+        const V_SPEED_MAX : number = 2.0;
         const PARTICLE_TIME : number = 40;
-
-        const dir : Vector = Vector.zero();
 
         const dx : number = (this.pos.x + 0.5)*TILE_WIDTH;
         const dy : number = (this.pos.y + 0.5)*TILE_HEIGHT;
 
-        const gravityDirection : Vector = new Vector(0, 1);
-        gravityDirection.rotate(-this.orientation*Math.PI/2);
-
         for (let i : number = 0; i < amount; ++ i) {
 
-            dir.x = (Math.random()*2 - 1.0)*H_SPEED_RANGE;
-            dir.y = V_SPEED_MIN + Math.random()*(V_SPEED_MAX - V_SPEED_MIN);
-            dir.rotate(-this.orientation*Math.PI/2);
+            const speedx : number = (Math.random()*2 - 1.0)*H_SPEED_RANGE;
+            const speedy : number = V_SPEED_MIN + Math.random()*(V_SPEED_MAX - V_SPEED_MIN);
 
-            this.particles.next().spawn(dx, dy, dir.x, dir.y, 
-                gravityDirection, PARTICLE_TIME, ParticleType.SingleColor, color)
+            this.particles.next().spawn(dx, dy, speedx, speedy, 
+                this.orientation, PARTICLE_TIME, ParticleType.SingleColor, color)
         }
     }
 
@@ -123,24 +116,6 @@ export class PuzzleObject {
             this.exist = false;
         }
     }
-    
-
-    private drawDeath(canvas : RenderTarget, bmp : Bitmap) : void {
-        
-        const APPEAR_TIME : number = 15.0;
-
-        const dx : number = (this.renderPos.x + 0.5)*TILE_WIDTH - bmp.width/2;
-        const dy : number = (this.renderPos.y + 0.5)*TILE_HEIGHT - bmp.height/2;
-
-        if (this.deathTimer < APPEAR_TIME) {
-
-            const alpha : number = this.deathTimer/APPEAR_TIME;
-            canvas.setAlpha(alpha);
-        }
-
-        canvas.drawBitmap(bmp, Flip.None, dx, dy);
-        canvas.setAlpha();
-    }
 
 
     private updateMovement(moveTimer : number) : void {
@@ -152,6 +127,38 @@ export class PuzzleObject {
 
         this.renderPos.x = this.pos.x - (1.0 - moveTimer)*this.moveDirection.x;
         this.renderPos.y = this.pos.y - (1.0 - moveTimer)*this.moveDirection.y;
+    }
+
+
+    private setZIndex() : void {
+
+        if (this.type == ObjectType.LuckyClover) {
+
+            this.zindex = 2;
+            return;
+        }
+        this.zindex = this.moving ? 1 : 0;
+    }
+
+
+    private drawDeath(canvas : RenderTarget) : void {
+
+        const t : number = this.deathTimer/DEATH_TIME;
+        const dx : number = (this.renderPos.x + 0.5)*TILE_WIDTH;
+        const dy : number = (this.renderPos.y + 0.5)*TILE_HEIGHT;
+
+        if (this.type == ObjectType.LuckyClover) {
+
+            const innerRadius : number = t*t*12;
+            const outerRadius : number = 4 + t*8;
+
+            canvas.setColorString("#b6ff00");
+            canvas.fillRing(dx, dy, innerRadius, outerRadius);
+
+            return;
+        }
+
+        // TODO: Other objects, maybe (at least the fire)
     }
 
 
@@ -177,12 +184,19 @@ export class PuzzleObject {
             return false;
         }
 
-        if (SMASHABLE_LOOKUP[this.type] ?? false) {
+        if (this.type == ObjectType.LuckyClover && o.type == ObjectType.Player) {
 
+            // this.exist = false;
             this.dying = true;
             this.deathTimer = 0.0;
-            // this.exist = false;
-            this.causedFailure = true;
+
+            return false;
+        }
+
+        if (SMASHABLE_LOOKUP[this.type] ?? false) {
+
+            this.exist = false;
+            this.deathTimer = 0.0;
 
             this.spawnBloodParticles(16, false, DEATH_COLORS[this.type] ?? "white");
 
@@ -212,21 +226,28 @@ export class PuzzleObject {
             this.updateMovement(moveTimer);
         }
 
-        this.animationTimer = (this.animationTimer + ANIMATION_SPEED*tick) % 1.0;
+        this.animationTimer = (this.animationTimer + ANIMATION_SPEED*tick) % 2.0;
+        this.setZIndex();
     }
 
 
     public draw(canvas : RenderTarget, assets : Assets) : void {
 
-        if (!this.exist || this.dying) {
+        if (!this.exist) {
 
+            return;
+        }
+
+        if (this.dying) {
+
+            this.drawDeath(canvas);
             return;
         }
 
         const bmpBase : Bitmap = assets.getBitmap(BitmapIndex.Base);
         const bmpFigures : Bitmap = assets.getBitmap(BitmapIndex.Figures);
 
-        const frame : number = (this.animationTimer*4) | 0;
+        const frame : number = ((this.animationTimer % 1)*4) | 0;
 
         const dx : number = this.renderPos.x*TILE_WIDTH;
         const dy : number = this.renderPos.y*TILE_HEIGHT;
@@ -252,31 +273,16 @@ export class PuzzleObject {
 
         case ObjectType.LuckyClover:
 
-            canvas.drawBitmap(bmpBase, Flip.None, dx, dy, 48, 32, 16, 16);
+            canvas.drawBitmap(bmpBase, Flip.None, 
+                dx, 
+                dy + Math.round(Math.sin(this.animationTimer*Math.PI)), 
+                48, 32, 16, 16);
             break;
         
 
         default:
             break;
         }
-    }
-
-
-    public postDraw(canvas : RenderTarget, assets : Assets) {
-
-        if (!this.exist) {
-
-            return;
-        }
-
-        if (this.dying) {
-
-            const bmpCross : Bitmap = assets.getBitmap(BitmapIndex.Cross);
-            this.drawDeath(canvas, bmpCross);
-            return;
-        }
-
-        // Possibly something else
     }
 
 
@@ -319,6 +325,12 @@ export class PuzzleObject {
     public doesExist() : boolean {
 
         return this.exist;
+    }
+
+
+    public getZIndex() : number {
+
+        return this.zindex;
     }
 
 

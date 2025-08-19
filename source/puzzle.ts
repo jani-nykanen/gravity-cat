@@ -231,7 +231,7 @@ export class Puzzle {
         }
 
         this.failureTimer -= tick;
-        if (this.failureTimer <= 0.0) {
+        if (this.failureTimer <= 0.0 && !this.somethingMoving) {
 
             if (!this.undo()) {
 
@@ -243,11 +243,51 @@ export class Puzzle {
     }
 
 
+    private resetProperties() : void {
+
+        this.somethingMoving = false;
+        this.moveTimerSpeed = 0.0;
+        this.moveDirection = Direction.None;
+        this.failed = false;
+        this.failureTimer = 0.0;
+    }
+
+
+    private drawGrid(canvas : RenderTarget) : void {
+
+        canvas.setColorString("#248fdb");
+        canvas.fillRect(0, 0, this.width*TILE_WIDTH, this.height*TILE_HEIGHT);
+
+        canvas.setColorString("#49b6ff");
+        for (let y : number = 0; y < this.height; ++ y) {
+
+            for (let x : number = 0; x < this.width; ++ x) {
+
+                if (x % 2 == y % 2) {
+                    
+                    continue;
+                }
+                canvas.fillRect(x*TILE_WIDTH, y*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT);
+            }
+        }
+    }
+
+
     public setCamera(canvas : RenderTarget) : void {
 
+        const FAILURE_SHAKE : number = 4.0;
+
+        let shakeX : number = 0.0;
+        let shakeY : number = 0.0;
+        if (this.failureTimer > 0.0) {
+
+            shakeX = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
+            shakeY = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
+        }
+
         canvas.moveTo(
-            canvas.width/2 - this.width*TILE_WIDTH/2, 
-            canvas.height/2 - this.height*TILE_HEIGHT/2);
+            canvas.width/2 - this.width*TILE_WIDTH/2 + shakeX, 
+            canvas.height/2 - this.height*TILE_HEIGHT/2 + shakeY);
     }
 
 
@@ -275,23 +315,15 @@ export class Puzzle {
 
             o.update(this.moveTimer, tick);
         }
+        this.objects.sort((a : PuzzleObject, b : PuzzleObject) : number => a.getZIndex() - b.getZIndex());
+
         this.particles.update(tick);
     }
 
 
     public draw(canvas : RenderTarget, assets : Assets) : void {
 
-        const FAILURE_SHAKE : number = 4.0;
-
-        let shakeX : number = 0.0;
-        let shakeY : number = 0.0;
-        if (this.failureTimer > 0.0) {
-
-            shakeX = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
-            shakeY = Math.floor((-1.0 + Math.random()*2.0)*FAILURE_SHAKE);
-        }
-
-        canvas.move(shakeX, shakeY);
+        this.drawGrid(canvas);
 
         const bmpTerrain : Bitmap = assets.getBitmap(BitmapIndex.Terrain);
         this.terrainMap.draw(canvas, bmpTerrain);
@@ -301,12 +333,6 @@ export class Puzzle {
             o.draw(canvas, assets);
         }
         this.particles.draw(canvas, assets);
-
-        canvas.move(-shakeX, -shakeY);
-        for (const o of this.objects) {
-
-            o.postDraw(canvas, assets);
-        }
     } 
 
 
@@ -340,11 +366,7 @@ export class Puzzle {
             this.states.push(new PuzzleState(this.objects));
         }
 
-        this.somethingMoving = false;
-        this.moveTimerSpeed = 0.0;
-        this.moveDirection = Direction.None;
-        this.failed = false;
-        this.failureTimer = 0.0;
+        this.resetProperties();
 
         this.initialState.recover(this.objects, this.particles);
     }
@@ -360,11 +382,7 @@ export class Puzzle {
         const newState : PuzzleState = this.states.pop()!;
         newState.recover(this.objects, this.particles);
 
-        this.somethingMoving = false;
-        this.moveTimerSpeed = 0.0;
-        this.moveDirection = Direction.None;
-        this.failed = false;
-        this.failureTimer = 0.0;
+        this.resetProperties();
 
         return true;
     }

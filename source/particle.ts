@@ -37,7 +37,7 @@ export class Particle {
         this.pos = Vector.zero();
         this.speed = Vector.zero();
         this.targetSpeed = Vector.zero();
-        this.friction = new Vector(0.075, 0.075);
+        this.friction = new Vector(0.125, 0.125);
 
         this.textureSource = Vector.zero();
 
@@ -58,18 +58,18 @@ export class Particle {
     public spawn(
         x : number, y : number, 
         speedx : number, speedy : number, 
-        gravityDirection : Vector, existTime : number, 
+        gravityDirection : Direction, existTime : number, 
         type : ParticleType, specialParam : Vector | string) : void {
 
-        const MIN_DIAMETER : number = 1;
-        const MAX_DIAMETER : number = 4;
-        const BASE_GRAVITY : number = 4.0;
+        const MIN_DIAMETER : number = 2;
+        const MAX_DIAMETER : number = 5;
+        const BASE_GRAVITY : number = 6.0;
+
+        const rotation : number = -gravityDirection*Math.PI/2;
 
         this.pos.setValues(x, y);
-        this.speed.setValues(speedx, speedy);
-        this.targetSpeed.setValues(
-            gravityDirection.x*BASE_GRAVITY, 
-            gravityDirection.y*BASE_GRAVITY);
+        this.speed.setValues(speedx, speedy).rotate(rotation);
+        this.targetSpeed.setValues(speedx, BASE_GRAVITY).rotate(rotation);
 
         this.timer = existTime;
         this.initialTime = existTime;

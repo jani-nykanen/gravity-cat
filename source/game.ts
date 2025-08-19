@@ -5,6 +5,8 @@ import { BitmapIndex, Controls, SampleIndex } from "./mnemonics.js";
 import { Puzzle } from "./puzzle.js";
 import { LEVEL_DATA } from "./leveldata.js";
 import { InputState } from "./controller.js";
+import { drawFrame } from "./frame.js";
+import { TILE_HEIGHT, TILE_WIDTH } from "./tilesize.js";
 
 
 export class Game extends Program {
@@ -72,6 +74,7 @@ export class Game extends Program {
         canvas.clearScreen(73, 182, 255);
 
         this.puzzle.setCamera(canvas);
+        drawFrame(canvas, this.assets, this.puzzle.width*TILE_WIDTH, this.puzzle.height*TILE_HEIGHT);
         this.puzzle.draw(canvas, this.assets);
 
         canvas.moveTo();
