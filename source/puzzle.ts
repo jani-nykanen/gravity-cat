@@ -171,6 +171,11 @@ export class Puzzle {
         const GRAVITY : number = 1.0/120.0;
         const MAX_GRAVITY : number = 1.0/2.0;
 
+        if (!this.somethingMoving) {
+
+            return;
+        }
+
         this.moveTimerSpeed += GRAVITY*tick;
         if (this.moveTimerSpeed > MAX_GRAVITY) {
 
@@ -214,12 +219,26 @@ export class Puzzle {
                 this.moveTimerSpeed = 0.0;
                 this.moveTimer = 0.0;
             }
+        }
+    }
+
+
+    private updateFailure(tick : number) : void {
+
+        if (!this.failed) {
+
             return;
         }
 
-        for (const o of this.objects) {
+        this.failureTimer -= tick;
+        if (this.failureTimer <= 0.0) {
 
-            o.updateMovement(this.moveTimer);
+            if (!this.undo()) {
+
+                this.restart(true);
+            }
+            this.failed = false;
+            this.failureTimer = 0.0;
         }
     }
 
@@ -249,16 +268,13 @@ export class Puzzle {
         }
 
         this.control(controller);
-        if (this.somethingMoving) {
-
-            this.updateMovement(tick);
-        }
-
+        this.updateMovement(tick);
+        this.updateFailure(tick);
+        
         for (const o of this.objects) {
 
-            o.updateAnimation(tick);
+            o.update(this.moveTimer, tick);
         }
-
         this.particles.update(tick);
     }
 

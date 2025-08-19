@@ -143,7 +143,7 @@ export class PuzzleObject {
     }
 
 
-    public updateMovement(moveTimer : number) : void {
+    private updateMovement(moveTimer : number) : void {
 
         if (!this.exist || this.dying) {
 
@@ -192,7 +192,7 @@ export class PuzzleObject {
     }
 
 
-    public updateAnimation(tick : number) : void {
+    public update(moveTimer : number, tick : number) : void {
 
         const ANIMATION_SPEED : number = 1.0/30.0;
 
@@ -205,6 +205,11 @@ export class PuzzleObject {
 
             this.updateDeath(tick);
             return;
+        }
+
+        if (this.moving) {
+
+            this.updateMovement(moveTimer);
         }
 
         this.animationTimer = (this.animationTimer + ANIMATION_SPEED*tick) % 1.0;
