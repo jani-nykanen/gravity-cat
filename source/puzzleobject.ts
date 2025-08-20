@@ -15,7 +15,7 @@ export const enum ObjectType {
     Player = 0,
     Crate = 1,
     Human = 2,
-    LuckyClover = 3,
+    Gem = 3,
 };
 
 
@@ -109,6 +109,8 @@ export class PuzzleObject {
 
     private updateDeath(tick : number) : void {
 
+        this.zindex = 0;
+
         this.deathTimer += tick;
         if (this.deathTimer >= DEATH_TIME) {
 
@@ -132,12 +134,17 @@ export class PuzzleObject {
 
     private setZIndex() : void {
 
-        if (this.type == ObjectType.LuckyClover) {
+        if (this.type == ObjectType.Gem) {
 
             this.zindex = 2;
             return;
         }
-        this.zindex = this.moving ? 1 : 0;
+        
+        this.zindex = 0;
+        if (this.moving) {
+
+            this.zindex = this.type == ObjectType.Player ? 3 : 1;
+        }
     }
 
 
@@ -147,12 +154,12 @@ export class PuzzleObject {
         const dx : number = (this.renderPos.x + 0.5)*TILE_WIDTH;
         const dy : number = (this.renderPos.y + 0.5)*TILE_HEIGHT;
 
-        if (this.type == ObjectType.LuckyClover) {
+        if (this.type == ObjectType.Gem) {
 
-            const innerRadius : number = t*t*12;
-            const outerRadius : number = 4 + t*8;
+            const innerRadius : number = t*t*16;
+            const outerRadius : number = 4 + t*12;
 
-            canvas.setColor("#b6ff00");
+            canvas.setColor("#d9b8fc");
             canvas.fillRing(dx, dy, innerRadius, outerRadius);
 
             return;
@@ -184,7 +191,7 @@ export class PuzzleObject {
             return false;
         }
 
-        if (this.type == ObjectType.LuckyClover && o.type == ObjectType.Player) {
+        if (this.type == ObjectType.Gem && o.type == ObjectType.Player) {
 
             // this.exist = false;
             this.dying = true;
@@ -231,7 +238,7 @@ export class PuzzleObject {
     }
 
 
-    public draw(canvas : RenderTarget, assets : Assets) : void {
+    public draw(canvas : RenderTarget, bmp : Bitmap) : void {
 
         if (!this.exist) {
 
@@ -243,9 +250,6 @@ export class PuzzleObject {
             this.drawDeath(canvas);
             return;
         }
-
-        const bmpBase : Bitmap = assets.getBitmap(BitmapIndex.Base);
-        const bmpFigures : Bitmap = assets.getBitmap(BitmapIndex.Figures);
 
         const frame : number = ((this.animationTimer % 1)*4) | 0;
 
@@ -260,7 +264,7 @@ export class PuzzleObject {
         case ObjectType.Human:
         case ObjectType.Player:
 
-            canvas.drawBitmap(bmpFigures, Flip.None, 
+            canvas.drawBitmap(bmp, Flip.None, 
                 dx + orientationShift.x , dy + orientationShift.y,
                 frame*16, (this.type == ObjectType.Human ? 16 : 0), 16, 16, 16, 16,
                 8, 8, rotation);
@@ -268,15 +272,15 @@ export class PuzzleObject {
 
         case ObjectType.Crate:
 
-            canvas.drawBitmap(bmpBase, Flip.None, dx, dy, 0, 32, 16, 16);
+            canvas.drawBitmap(bmp, Flip.None, dx, dy, 0, 48, 16, 16);
             break;
 
-        case ObjectType.LuckyClover:
+        case ObjectType.Gem:
 
-            canvas.drawBitmap(bmpBase, Flip.None, 
+            canvas.drawBitmap(bmp, Flip.None, 
                 dx, 
                 dy + Math.round(Math.sin(this.animationTimer*Math.PI)), 
-                48, 32, 16, 16);
+                frame*16, 32, 16, 16);
             break;
         
 

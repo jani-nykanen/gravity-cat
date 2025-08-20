@@ -326,11 +326,13 @@ export class Puzzle {
         this.drawGrid(canvas);
 
         const bmpTerrain : Bitmap = assets.getBitmap(BitmapIndex.Terrain);
+        const bmpGameObjects : Bitmap = assets.getBitmap(BitmapIndex.GameObjects);
+
         this.terrainMap.draw(canvas, bmpTerrain);
 
         for (const o of this.objects) {
 
-            o.draw(canvas, assets);
+            o.draw(canvas, bmpGameObjects);
         }
         this.particles.draw(canvas, assets);
     } 

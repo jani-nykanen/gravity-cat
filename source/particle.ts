@@ -189,7 +189,7 @@ export class ParticleGenerator {
 
     public draw(canvas : RenderTarget, assets : Assets) : void {
 
-        const bmp : Bitmap = assets.getBitmap(BitmapIndex.Figures);
+        const bmp : Bitmap = assets.getBitmap(BitmapIndex.GameObjects);
         for (const p of this.particles) {
 
             p.draw(canvas, bmp);

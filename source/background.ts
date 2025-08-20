@@ -31,4 +31,7 @@ export const drawBackground = (canvas : RenderTarget, assets : Assets, timer : n
         const dy : number = waterSurface + WATER_YOFF[y];
         canvas.fillRect(0, dy, canvas.width, canvas.height - dy);
     }
+
+    // Sun
+    canvas.drawBitmap(bmp, Flip.None, canvas.width - 56, 8, 0, 64, 48, 48);
 }

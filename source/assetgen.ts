@@ -37,6 +37,9 @@ const PALETTE_TABLE : number[] = [
     0b111101011, // G Bright orange
     0b100001000, // H Dark orange-ish whatever
 
+    0b101011110, // I Darker purple
+    0b110101111, // J Brighter purple
+
 ];
 
 
@@ -48,8 +51,8 @@ const GAME_ART_PALETTE_TABLE : (string | undefined) [] = [
     "1078", "1078", "1078", "1078", "1078", "1078", "1078", "1078", 
     "1079", "1079", "10CA", "10CB", "10CD", "10CD", "1056", "1056", 
     "1079", "1079", "10CB", "10CB", "10CD", "10CD", "1056", "1056", 
-    "10EF", "10EF", "0000", "0000", "0000", "0000", "0000", "0000",
-    "10DF", "10EF", "0000", "0000", "0000", "0000", "0000", "0000",
+    "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "0000", "0000",
+    "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "0000", "0000",
 ];
 
 
@@ -115,16 +118,28 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 }
 
 
-const generateFigureBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
+const generateGameObjectsBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 
     const FRAME_LOOKUP : number[] = [0, 1, 0, 2];
     const SHIFT_Y : number[] = [1, 2, 1, 0];
 
-    const canvas : RenderTarget = new RenderTarget(64, 32, false);
+    const canvas : RenderTarget = new RenderTarget(64, 64, false);
 
-    for (let y : number = 0; y < 2; ++ y) {
+    for (let y : number = 0; y < 4; ++ y) {
 
         for (let x : number = 0; x < 4; ++ x) {
+
+            if (y == 2) {
+
+                canvas.drawBitmap(bmpBase, Flip.None, x*16 + 2, y*16 + 2, x*12, 48, 12, 12);
+                continue;
+            }
+
+            if (y == 3) {
+
+                canvas.drawBitmap(bmpBase, Flip.None, x*16, y*16, x*16, 32, 16, 16);
+                continue;
+            }
 
             const sx : number = y*24 + FRAME_LOOKUP[x]*8;
 
@@ -137,7 +152,8 @@ const generateFigureBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
             }
         }
     }
-    assets.addBitmap(BitmapIndex.Figures, canvas.toBitmap());
+    
+    assets.addBitmap(BitmapIndex.GameObjects, canvas.toBitmap());
 }
 
 
@@ -145,14 +161,16 @@ const generateBackground = (assets : Assets) : void => {
 
     const CLOUDS_WIDTH : number = 128;
     const CLOUDS_HEIGHT : number = 64;
+    const SUN_DIAMETER : number = 48;
     const PERIOD : number = 16;
     const SINE_FACTOR : number = 1.0;
     const AMPLITUDE : number = 12;
     const COLORS : string[] = ["#248fdb", "#92dbff", "#ffffff"];
     const YOFF : number[] = [0, 2, 5];
 
-    const canvas : RenderTarget = new RenderTarget(CLOUDS_WIDTH, CLOUDS_HEIGHT);
+    const canvas : RenderTarget = new RenderTarget(CLOUDS_WIDTH, CLOUDS_HEIGHT + SUN_DIAMETER);
 
+    // Clouds
     for (let y : number = 0; y < 3; ++ y) {
 
         canvas.setColor(COLORS[y]);
@@ -165,6 +183,12 @@ const generateBackground = (assets : Assets) : void => {
             canvas.fillRect(x, dy, 1, CLOUDS_HEIGHT - dy + 1);
         }
     }
+
+    // Sun
+    canvas.setColor("#ffb600");
+    canvas.fillEllipse(SUN_DIAMETER/2, CLOUDS_HEIGHT + SUN_DIAMETER/2, SUN_DIAMETER/2, SUN_DIAMETER/2);
+    canvas.setColor("#ffff92");
+    canvas.fillEllipse(SUN_DIAMETER/2 - 2, CLOUDS_HEIGHT + SUN_DIAMETER/2 - 2, SUN_DIAMETER/2 - 2, SUN_DIAMETER/2 - 2);
 
     assets.addBitmap(BitmapIndex.Background, canvas.toBitmap());
 }
@@ -203,7 +227,7 @@ export const generateAssets = (assets : Assets, audio : AudioPlayer) : void => {
 
     // Other bitmaps
     generateTerrainBitmap(assets, bmpGameArt);
-    generateFigureBitmap(assets, bmpGameArt);
+    generateGameObjectsBitmap(assets, bmpGameArt);
     generateBackground(assets);
 
     // Sounds

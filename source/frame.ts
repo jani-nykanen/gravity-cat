@@ -12,6 +12,11 @@ export const drawFrame = (canvas : RenderTarget, assets : Assets, width : number
 
     const FRAME_WIDTH : number = 8;
 
+    // Shadow
+    canvas.setColor("rgba(0,0,0,0.2)");
+    canvas.fillRect(-4, -4, width + FRAME_WIDTH*2, height + FRAME_WIDTH*2);
+
+    // Edges
     canvas.setColor(FRAME_COLORS[0]);
     canvas.fillRect(-FRAME_WIDTH, -FRAME_WIDTH, width + FRAME_WIDTH*2, height + FRAME_WIDTH*2);
 
@@ -27,6 +32,7 @@ export const drawFrame = (canvas : RenderTarget, assets : Assets, width : number
     canvas.setColor(FRAME_COLORS[0]);
     canvas.fillRect(-1, -1, width + 2, height + 2);
 
+    // Corners
     const bmp : Bitmap = assets.getBitmap(BitmapIndex.Base);
 
     canvas.drawBitmap(bmp, Flip.None, -8, -8, 56, 8, 8, 8);

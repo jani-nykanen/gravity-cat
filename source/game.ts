@@ -85,6 +85,6 @@ export class Game extends Program {
         this.puzzle.draw(canvas, this.assets);
 
         canvas.moveTo();
-        // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Background), Flip.None, 0, 0);
+        // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.GameObjects), Flip.None, 0, 0);
     }
 }
