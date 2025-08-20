@@ -1,4 +1,4 @@
-import { Flip, RenderTarget } from "./gfx.js";
+import { Align, Flip, RenderTarget } from "./gfx.js";
 import { Program } from "./program.js";
 import { generateAssets } from "./assetgen.js";
 import { BitmapIndex, Controls, SampleIndex } from "./mnemonics.js";
@@ -86,5 +86,11 @@ export class Game extends Program {
 
         canvas.moveTo();
         // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.GameObjects), Flip.None, 0, 0);
+
+        for (let i : number = 0; i < 2; ++ i) {
+
+            canvas.drawText(this.assets.getBitmap(BitmapIndex.FontOutlinesWhite), "LEVEL 1",
+                canvas.width/2, 5 - i, -7, 0, Align.Center);
+        }
     }
 }

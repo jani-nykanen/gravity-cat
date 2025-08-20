@@ -22,7 +22,7 @@ const PALETTE_TABLE : number[] = [
     0b010101000, // 5 Dark green
     0b101111000, // 6 Bright green
 
-    0b100010000, // 7 Dark brown
+    0b101011000, // 7 Dark brown
     0b111111100, // 8 Bright yellow
 
     0b110100010, // 9 Darker beige
@@ -37,8 +37,9 @@ const PALETTE_TABLE : number[] = [
     0b111101011, // G Bright orange
     0b100001000, // H Dark orange-ish whatever
 
-    0b101011110, // I Darker purple
-    0b110101111, // J Brighter purple
+    0b101001011, // I Darker purple
+    0b110011101, // J Brighter purple
+    0b111101111, // K Pink
 
 ];
 
@@ -49,10 +50,10 @@ const GAME_ART_PALETTE_TABLE : (string | undefined) [] = [
     "1002", "1002", "1002", "109A", "109A", "109A", "10HG", "10HG",
     "1056", "1056", "1058", "1076", "1056", "1056", "1078", "1078",
     "1078", "1078", "1078", "1078", "1078", "1078", "1078", "1078", 
-    "1079", "1079", "10CA", "10CB", "10CD", "10CD", "1056", "1056", 
-    "1079", "1079", "10CB", "10CB", "10CD", "10CD", "1056", "1056", 
-    "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "0000", "0000",
-    "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "10IJ", "0000", "0000",
+    "107A", "107A", "10CA", "10CB", "10CD", "10CD", "1056", "1056", 
+    "107A", "107A", "10CB", "10CB", "10CD", "10CD", "1056", "1056", 
+    "10JK", "10JK", "10JK", "10JK", "10JK", "10JK", "000I", "000I",
+    "10JK", "10JK", "10JK", "10JK", "10JK", "10JK", "000I", "000I",
 ];
 
 
@@ -125,12 +126,18 @@ const generateGameObjectsBitmap = (assets : Assets, bmpBase : Bitmap) : void => 
 
     const canvas : RenderTarget = new RenderTarget(64, 64, false);
 
+    // Correction shade for the crate
+    canvas.setColor("#924900");
+    canvas.fillRect(1, 48, 14, 16);
+
     for (let y : number = 0; y < 4; ++ y) {
 
         for (let x : number = 0; x < 4; ++ x) {
 
+            // Gems
             if (y == 2) {
 
+                canvas.drawBitmap(bmpBase, Flip.None, x*16 + 2, y*16 + 2, 48, 48, 12, 12);
                 canvas.drawBitmap(bmpBase, Flip.None, x*16 + 2, y*16 + 2, x*12, 48, 12, 12);
                 continue;
             }
@@ -194,6 +201,59 @@ const generateBackground = (assets : Assets) : void => {
 }
 
 
+const generateOutlinedFont = (fontBlack : Bitmap, fontColored : Bitmap) : Bitmap => {
+
+    const canvas : RenderTarget = new RenderTarget(fontColored.width*2, fontColored.height*2);
+
+    const h : number = (fontColored.height/8) | 0;
+
+    // Nested loops let's GOOOOOOO!
+    for (let y : number = 0; y < h; ++ y) {
+
+        const dy : number = y*16 + 4;
+
+        for (let x : number = 0; x < 16; ++ x) {
+
+            const dx : number = x*16 + 4;
+
+            for (let i : number = -1; i <= 1; ++ i) {
+
+                for (let j : number = -1; j <= 1; ++ j) {
+
+                    if (i == 0 && j == 0) {
+
+                        continue;
+                    }
+                    canvas.drawBitmap(fontBlack, Flip.None, dx + i, dy + j, x*8, y*8, 8, 8);
+                }
+                canvas.drawBitmap(fontColored, Flip.None, dx, dy, x*8, y*8, 8, 8);
+            }
+        }
+    }
+
+    return canvas.toBitmap();
+}
+
+
+const generateFonts = (assets : Assets, rgb333 : PaletteLookup) : void => {
+
+    const bmpFontRaw : Bitmap = assets.getBitmap(BitmapIndex.FontRaw)!;
+
+    // Single-colored fonts
+    const bmpFontWhite : Bitmap = applyPalette(bmpFontRaw, 
+        (new Array<(string | undefined)>(16*4)).fill("0002"), 
+        PALETTE_TABLE, rgb333);
+    const bmpFontBlack : Bitmap = applyPalette(bmpFontRaw, 
+        (new Array<(string | undefined)>(16*4)).fill("0001"), 
+        PALETTE_TABLE, rgb333);
+    assets.addBitmap(BitmapIndex.FontRaw, bmpFontWhite);
+
+    // Outlined fonts
+    assets.addBitmap(BitmapIndex.FontOutlinesWhite, 
+        generateOutlinedFont(bmpFontBlack, bmpFontWhite));
+}
+
+
 const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
 
     const sampleJump = audio.createSample(
@@ -210,19 +270,14 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
 
 export const generateAssets = (assets : Assets, audio : AudioPlayer) : void => {
 
-    // Fonts
     const rgb333 : PaletteLookup = generatePaletteLookup();
-    const bmpFontRaw : Bitmap = assets.getBitmap(BitmapIndex.FontRaw)!;
 
-    const bmpFontWhite : Bitmap = applyPalette(bmpFontRaw, 
-        (new Array<(string | undefined)>(16*4)).fill("0002"), 
-        PALETTE_TABLE, rgb333);
-    assets.addBitmap(BitmapIndex.FontRaw, bmpFontWhite);
+    // Fonts
+    generateFonts(assets, rgb333);
 
     // Game art
     const bmpGameArtRaw : Bitmap = assets.getBitmap(BitmapIndex.BaseRaw)!;
     const bmpGameArt : Bitmap = applyPalette(bmpGameArtRaw, GAME_ART_PALETTE_TABLE, PALETTE_TABLE, rgb333);
-        
     assets.addBitmap(BitmapIndex.Base, bmpGameArt);
 
     // Other bitmaps

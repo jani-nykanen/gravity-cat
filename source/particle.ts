@@ -8,9 +8,14 @@ import { BitmapIndex } from "./mnemonics.js";
 
 export const enum ParticleType {
 
-    SingleColor = 0,
-    Textured = 1,
+    BlackBlood = 0,
+    RedBlood = 1,
+    Textured = 2,
+    BlackSmoke = 3,
 }
+
+
+const COLORS : string[] = ["#000000", "#ff2400",]
 
 
 export class Particle {
@@ -26,10 +31,10 @@ export class Particle {
 
     private diameter : number = 0;
     private textureSource : Vector;
-    private colorStr : string = "white";
-    private type : ParticleType = ParticleType.SingleColor;
+    private type : ParticleType = ParticleType.BlackBlood;
 
     private exists : boolean;
+    private foreground : boolean = true;
     
 
     constructor() {
@@ -50,8 +55,19 @@ export class Particle {
         const dx : number = this.pos.x - this.diameter/2;
         const dy : number = this.pos.y - this.diameter/2;
 
-        canvas.setColor(this.colorStr);
+        canvas.setColor(COLORS[this.type]);
         canvas.fillRect(dx, dy, this.diameter, this.diameter);
+    }
+
+
+    private drawBlackSmokeParticle(canvas : RenderTarget) : void {
+
+        const MAX_RADIUS : number = 6;
+
+        const radius : number = this.timer/this.initialTime*MAX_RADIUS;
+
+        canvas.setColor("#000000");
+        canvas.fillEllipse(this.pos.x, this.pos.y, radius);
     }
 
 
@@ -59,7 +75,7 @@ export class Particle {
         x : number, y : number, 
         speedx : number, speedy : number, 
         gravityDirection : Direction, existTime : number, 
-        type : ParticleType, specialParam : Vector | string) : void {
+        type : ParticleType, foreground : boolean, texX : number = 0.0, texY : number = 0.0) : void {
 
         const MIN_DIAMETER : number = 2;
         const MAX_DIAMETER : number = 5;
@@ -69,26 +85,22 @@ export class Particle {
 
         this.pos.setValues(x, y);
         this.speed.setValues(speedx, speedy).rotate(rotation);
-        this.targetSpeed.setValues(speedx, BASE_GRAVITY).rotate(rotation);
+        this.targetSpeed.makeEqual(this.speed);
+        
 
         this.timer = existTime;
         this.initialTime = existTime;
         this.type = type;
 
-        if (type == ParticleType.SingleColor) {
+        if (type == ParticleType.BlackBlood || type == ParticleType.RedBlood) {
 
             this.diameter = MIN_DIAMETER + ((Math.random()*(MAX_DIAMETER - MIN_DIAMETER)) | 0);
+            this.targetSpeed.setValues(speedx, BASE_GRAVITY).rotate(rotation);
         }
         
-        if (typeof(specialParam) === "string") {
+        this.textureSource.setValues(texX, texY);
 
-            this.colorStr = specialParam;
-        }
-        else {
-
-            this.textureSource.makeEqual(specialParam as Vector);
-        }
-
+        this.foreground = foreground;
         this.exists = true;
     }
 
@@ -129,14 +141,23 @@ export class Particle {
         }
         canvas.setAlpha(alpha);
 
-        if (this.type == ParticleType.SingleColor) {
+        switch (this.type) {
+
+        case ParticleType.BlackBlood:
+        case ParticleType.RedBlood:
 
             this.drawSingleColorParticle(canvas);
-        }
-        else {
+            break;
 
-            // TODO: Texture particles!
+        case ParticleType.BlackSmoke:
+
+            this.drawBlackSmokeParticle(canvas);
+            break
+
+        default:
+            break;
         }
+
         canvas.setAlpha();
     }
 
@@ -144,6 +165,12 @@ export class Particle {
     public doesExist() : boolean {
 
         return this.exists;
+    }
+
+
+    public isForeground() : boolean {
+
+        return this.foreground;
     }
 }
 
@@ -187,12 +214,26 @@ export class ParticleGenerator {
     }
 
 
-    public draw(canvas : RenderTarget, assets : Assets) : void {
+    public drawBackground(canvas : RenderTarget, bmp : Bitmap) : void {
 
-        const bmp : Bitmap = assets.getBitmap(BitmapIndex.GameObjects);
         for (const p of this.particles) {
 
-            p.draw(canvas, bmp);
+            if (!p.isForeground()) {
+                
+                p.draw(canvas, bmp);
+            }
+        }
+    }
+
+
+    public drawForeground(canvas : RenderTarget, bmp : Bitmap) : void {
+
+        for (const p of this.particles) {
+
+            if (p.isForeground()) {
+                
+                p.draw(canvas, bmp);
+            }
         }
     }
 }

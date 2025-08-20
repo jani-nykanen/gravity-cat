@@ -23,8 +23,6 @@ const IMMOVABLE_LOOKUP : boolean[] = [false, false, false, true];
 const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true];
 const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false];
 
-const DEATH_COLORS : (string | undefined) [] = ["black", , "#ff2400", ];
-
 const DEATH_TIME : number = 20;
 
 
@@ -40,6 +38,7 @@ export class PuzzleObject {
 
     private animationTimer : number = 0.0;
     private deathTimer : number = 0.0;
+    private smokeTimer : number = 0.0;
 
     private oldOrientation : Direction;
     private orientation : Direction;
@@ -79,23 +78,28 @@ export class PuzzleObject {
     }
 
 
-    private spawnBloodParticles(amount : number, textured : boolean, color : string) : void {
+    private getCenter() : Vector {
+
+        return new Vector((this.renderPos.x + 0.5)*TILE_WIDTH, (this.renderPos.y + 0.5)*TILE_HEIGHT);
+    }
+
+
+    private spawnBloodParticles(amount : number, type : ParticleType) : void {
 
         const H_SPEED_RANGE : number = 2.5;
         const V_SPEED_MIN : number = -4.0;
         const V_SPEED_MAX : number = 2.0;
         const PARTICLE_TIME : number = 40;
 
-        const dx : number = (this.pos.x + 0.5)*TILE_WIDTH;
-        const dy : number = (this.pos.y + 0.5)*TILE_HEIGHT;
+        const p : Vector = this.getCenter();
 
         for (let i : number = 0; i < amount; ++ i) {
 
             const speedx : number = (Math.random()*2 - 1.0)*H_SPEED_RANGE;
             const speedy : number = V_SPEED_MIN + Math.random()*(V_SPEED_MAX - V_SPEED_MIN);
 
-            this.particles.next().spawn(dx, dy, speedx, speedy, 
-                this.orientation, PARTICLE_TIME, ParticleType.SingleColor, color)
+            this.particles.next().spawn(p.x, p.y, speedx, speedy, 
+                this.orientation, PARTICLE_TIME, type, true);
         }
     }
 
@@ -104,6 +108,26 @@ export class PuzzleObject {
 
         return (this.pos.x | 0) == (o.pos.x | 0) &&
                (this.pos.y | 0) == (o.pos.y | 0);   
+    }
+
+
+    private updateSmoke(tick : number) : void {
+
+        const SMOKE_TIME : number = 5.0;
+
+        if (this.type != ObjectType.Player) {
+
+            return;
+        }
+
+        this.smokeTimer += tick;
+        if (this.smokeTimer >= SMOKE_TIME) {
+
+            this.smokeTimer -= SMOKE_TIME;
+
+            const p : Vector = this.getCenter();
+            this.particles.next().spawn(p.x, p.y, 0.0, 0.0, Direction.None, 30, ParticleType.BlackSmoke, false);
+        }
     }
 
 
@@ -159,7 +183,7 @@ export class PuzzleObject {
             const innerRadius : number = t*t*16;
             const outerRadius : number = 4 + t*12;
 
-            canvas.setColor("#d9b8fc");
+            canvas.setColor("#ffdbff");
             canvas.fillRing(dx, dy, innerRadius, outerRadius);
 
             return;
@@ -205,7 +229,8 @@ export class PuzzleObject {
             this.exist = false;
             this.deathTimer = 0.0;
 
-            this.spawnBloodParticles(16, false, DEATH_COLORS[this.type] ?? "white");
+            this.spawnBloodParticles(16, 
+                this.type == ObjectType.Player ? ParticleType.BlackBlood : ParticleType.RedBlood);
 
             return true;
         }
@@ -230,6 +255,7 @@ export class PuzzleObject {
 
         if (this.moving) {
 
+            this.updateSmoke(tick);
             this.updateMovement(moveTimer);
         }
 

@@ -330,11 +330,12 @@ export class Puzzle {
 
         this.terrainMap.draw(canvas, bmpTerrain);
 
+        this.particles.drawBackground(canvas, bmpGameObjects);
         for (const o of this.objects) {
 
             o.draw(canvas, bmpGameObjects);
         }
-        this.particles.draw(canvas, assets);
+        this.particles.drawForeground(canvas, bmpGameObjects);
     } 
 
 
