@@ -115,22 +115,14 @@ export class RenderTarget {
     }
 
 
-    public clearScreen(r : number = 255, g : number = 255, b : number = 255) : void {
+    public clearScreen(colorStr : string) : void {
 
-        this.ctx.fillStyle = `rgb(${r | 0}, ${g | 0}, ${b | 0})`;
+        this.ctx.fillStyle = colorStr;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
+    
 
-
-    public setColor(r : number = 255, g : number = 255, b : number = 255, a : number = 1.0) : void {
-
-        const style : string = `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${clamp(a, 0.0, 1.0)})`;
-        this.ctx.fillStyle = style;
-        this.ctx.strokeStyle = style;
-    }
-
-
-    public setColorString(str : string) : void {
+    public setColor(str : string) : void {
 
         this.ctx.fillStyle = str;
         this.ctx.strokeStyle = str;

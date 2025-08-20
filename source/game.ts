@@ -7,12 +7,15 @@ import { LEVEL_DATA } from "./leveldata.js";
 import { InputState } from "./controller.js";
 import { drawFrame } from "./frame.js";
 import { TILE_HEIGHT, TILE_WIDTH } from "./tilesize.js";
+import { drawBackground } from "./background.js";
 
 
 export class Game extends Program {
 
 
     private puzzle : Puzzle;
+
+    private backgroundTimer : number = 0.0;
 
 
     constructor(audioCtx : AudioContext) {
@@ -51,6 +54,8 @@ export class Game extends Program {
 
     public onUpdate() : void {
         
+        const BACKGROUND_ANIMATION_SPEED : number = 1.0/256.0;
+
         this.puzzle.update(this.controller, this.audio, this.assets, this.tick);
 
         // Restart
@@ -64,6 +69,8 @@ export class Game extends Program {
 
             this.puzzle.undo();
         }
+
+        this.backgroundTimer = (this.backgroundTimer + BACKGROUND_ANIMATION_SPEED) % 1.0;
     }
 
 
@@ -71,13 +78,13 @@ export class Game extends Program {
         
         const canvas : RenderTarget = this.canvas;
 
-        canvas.clearScreen(73, 182, 255);
+        drawBackground(canvas, this.assets, this.backgroundTimer);
 
         this.puzzle.setCamera(canvas);
         drawFrame(canvas, this.assets, this.puzzle.width*TILE_WIDTH, this.puzzle.height*TILE_HEIGHT);
         this.puzzle.draw(canvas, this.assets);
 
         canvas.moveTo();
-        // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Cross), Flip.None, 0, 0);
+        // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Background), Flip.None, 0, 0);
     }
 }

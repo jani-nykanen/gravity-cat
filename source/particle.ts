@@ -50,7 +50,7 @@ export class Particle {
         const dx : number = this.pos.x - this.diameter/2;
         const dy : number = this.pos.y - this.diameter/2;
 
-        canvas.setColorString(this.colorStr);
+        canvas.setColor(this.colorStr);
         canvas.fillRect(dx, dy, this.diameter, this.diameter);
     }
 

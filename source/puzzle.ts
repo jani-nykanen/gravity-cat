@@ -25,7 +25,7 @@ class PuzzleState {
         this.objects = new Array<PuzzleObjectState> ();
         for (const o of initialObjects) {
 
-            if (!o.doesExist()) {
+            if (!o.doesExist() || o.isDying()) {
 
                 continue;
             }
@@ -255,10 +255,10 @@ export class Puzzle {
 
     private drawGrid(canvas : RenderTarget) : void {
 
-        canvas.setColorString("#248fdb");
+        canvas.setColor("#248fdb");
         canvas.fillRect(0, 0, this.width*TILE_WIDTH, this.height*TILE_HEIGHT);
 
-        canvas.setColorString("#49b6ff");
+        canvas.setColor("#49b6ff");
         for (let y : number = 0; y < this.height; ++ y) {
 
             for (let x : number = 0; x < this.width; ++ x) {

@@ -152,7 +152,7 @@ export class PuzzleObject {
             const innerRadius : number = t*t*12;
             const outerRadius : number = 4 + t*8;
 
-            canvas.setColorString("#b6ff00");
+            canvas.setColor("#b6ff00");
             canvas.fillRing(dx, dy, innerRadius, outerRadius);
 
             return;
@@ -325,6 +325,12 @@ export class PuzzleObject {
     public doesExist() : boolean {
 
         return this.exist;
+    }
+
+
+    public isDying() : boolean {
+
+        return this.dying;
     }
 
 

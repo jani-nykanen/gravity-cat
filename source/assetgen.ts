@@ -97,13 +97,13 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
                 w = 7;
             }
 
-            canvas.setColorString(GRID_COLORS[Number(x % 2 == y % 2)]);
+            canvas.setColor(GRID_COLORS[Number(x % 2 == y % 2)]);
             canvas.fillRect(x*8 + xoff, y*8, w, 8);
 
             // Correction pixels
             if (x >= 2 && x <= 3 && y == 0) {
 
-                canvas.setColorString(BORDER_COLORS[Number(x == 3)]);
+                canvas.setColor(BORDER_COLORS[Number(x == 3)]);
                 canvas.fillRect(x*8 + (x == 2 ? 1 : 6), 1, 1, 7);
             }
         }
@@ -141,27 +141,32 @@ const generateFigureBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
 }
 
 
-const generateCrossBitmap = (assets : Assets) : void => {
+const generateBackground = (assets : Assets) : void => {
 
-    const DEPTH : number = 3;
-    const DIAMETER : number = 24;
-    const LINE_WIDTH : number = 7;
+    const CLOUDS_WIDTH : number = 128;
+    const CLOUDS_HEIGHT : number = 64;
+    const PERIOD : number = 16;
+    const SINE_FACTOR : number = 1.0;
+    const AMPLITUDE : number = 12;
+    const COLORS : string[] = ["#248fdb", "#92dbff", "#ffffff"];
+    const YOFF : number[] = [0, 2, 5];
 
-    const canvas : RenderTarget = new RenderTarget(48, 48, false);
+    const canvas : RenderTarget = new RenderTarget(CLOUDS_WIDTH, CLOUDS_HEIGHT);
 
-    const dx : number = (48 - DIAMETER)/2;
-    const dy : number = dx;
+    for (let y : number = 0; y < 3; ++ y) {
 
-    canvas.setColor(143, 36, 0);
-    for (let y : number = 0; y < DEPTH; ++ y) {
+        canvas.setColor(COLORS[y]);
+        for (let x : number = 0; x < CLOUDS_WIDTH; ++ x) {
 
-        canvas.fillCross(dx, dy + (y + 1), DIAMETER, LINE_WIDTH);
+            const t : number = ((x % PERIOD) - PERIOD/2)/(PERIOD/2 + 2);
+            const s : number = x/CLOUDS_WIDTH*Math.PI*2;
+            const dy = 1 + (1.0 - Math.sqrt(1.0 - t*t) + (1.0 + Math.sin(s))*SINE_FACTOR)*AMPLITUDE + YOFF[y];
+
+            canvas.fillRect(x, dy, 1, CLOUDS_HEIGHT - dy + 1);
+        }
     }
 
-    canvas.setColor(255, 73, 0);
-    canvas.fillCross(dx, dy, DIAMETER, LINE_WIDTH);
-
-    assets.addBitmap(BitmapIndex.Cross, canvas.toBitmap());
+    assets.addBitmap(BitmapIndex.Background, canvas.toBitmap());
 }
 
 
@@ -199,7 +204,7 @@ export const generateAssets = (assets : Assets, audio : AudioPlayer) : void => {
     // Other bitmaps
     generateTerrainBitmap(assets, bmpGameArt);
     generateFigureBitmap(assets, bmpGameArt);
-    generateCrossBitmap(assets);
+    generateBackground(assets);
 
     // Sounds
     generateSamples(assets, audio);
