@@ -23,8 +23,9 @@ export const enum SampleIndex {
     Kill = 1,
     Collect = 2,
     Move = 3,
+    Break = 4,
 
-    LevelClear = 4,
+    LevelClear = 5,
 }
 
 

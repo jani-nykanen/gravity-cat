@@ -222,6 +222,15 @@ export class Puzzle {
                 }
             }
 
+            // Removed dead objects (gets rid of some bugs)
+            for (let i : number = 0; i < this.objects.length; ++ i) {
+
+                if (!this.objects[i].doesExist()) {
+
+                    this.objects.splice(i, 1);
+                }
+            }
+
             // Halt movement
             for (const o of this.objects) {
 
@@ -357,7 +366,7 @@ export class Puzzle {
     } 
 
 
-    public isTileFree(x : number, y : number, direction : Direction) : boolean {
+    public isTileFree(x : number, y : number, direction : Direction, self : PuzzleObject) : boolean {
         
         if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
 
@@ -374,6 +383,14 @@ export class Puzzle {
 
             if (o.isLocatedIn(x, y)) {
                 
+                const otype : ObjectType = o.getType();
+                if ((otype == ObjectType.Crate || otype == ObjectType.Rubble) && 
+                    self.getType() == ObjectType.Boulder &&
+                    self.didMoveBefore()) {
+
+                    return true;
+                }
+
                 return false;
             }
         }

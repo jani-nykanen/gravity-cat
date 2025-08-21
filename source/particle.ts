@@ -1,7 +1,7 @@
 import { Vector } from "./vector.js";
 import { Direction, directionToVector } from "./direction.js";
 import { approachValue } from "./utility.js";
-import { Bitmap, RenderTarget } from "./gfx.js";
+import { Bitmap, Flip, RenderTarget } from "./gfx.js";
 import { Assets } from "./assets.js";
 import { BitmapIndex } from "./mnemonics.js";
 
@@ -71,6 +71,16 @@ export class Particle {
     }
 
 
+    private drawTexturedParticle(canvas : RenderTarget, bmp : Bitmap) : void {
+
+        const dx : number = this.pos.x - 4;
+        const dy : number = this.pos.y - 4;
+
+        canvas.drawBitmap(bmp, Flip.None, dx, dy, 
+            this.textureSource.x, this.textureSource.y, 8, 8);
+    }
+
+
     public spawn(
         x : number, y : number, 
         speedx : number, speedy : number, 
@@ -87,7 +97,6 @@ export class Particle {
         this.speed.setValues(speedx, speedy).rotate(rotation);
         this.targetSpeed.makeEqual(this.speed);
         
-
         this.timer = existTime;
         this.initialTime = existTime;
         this.type = type;
@@ -95,6 +104,10 @@ export class Particle {
         if (type == ParticleType.BlackBlood || type == ParticleType.RedBlood) {
 
             this.diameter = MIN_DIAMETER + ((Math.random()*(MAX_DIAMETER - MIN_DIAMETER)) | 0);
+        }
+
+        if (type != ParticleType.BlackSmoke) {
+
             this.targetSpeed.setValues(speedx, BASE_GRAVITY).rotate(rotation);
         }
         
@@ -153,6 +166,11 @@ export class Particle {
 
             this.drawBlackSmokeParticle(canvas);
             break
+
+        case ParticleType.Textured:
+
+            this.drawTexturedParticle(canvas, bmp);
+            break;
 
         default:
             break;

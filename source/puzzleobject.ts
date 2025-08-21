@@ -17,12 +17,14 @@ export const enum ObjectType {
     Human = 2,
     Gem = 3,
     Boulder = 4,
+    Rubble = 5,
+    Fire = 6,
 };
 
 
-const IMMOVABLE_LOOKUP : boolean[] = [false, false, false, true, false];
-const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true, false];
-const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false, false];
+const IMMOVABLE_LOOKUP : boolean[] = [false, false, false, true, false, true, true];
+const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true, false, false, true];
+const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false, false, false, false];
 
 const DEATH_TIME : number = 20;
 
@@ -45,6 +47,7 @@ export class PuzzleObject {
     private orientation : Direction;
     private moveDirection : Vector;
     private moving : boolean = false;
+    private hasMoved : boolean = false;
 
     private exist : boolean = true;
     private dying : boolean = false;
@@ -101,6 +104,31 @@ export class PuzzleObject {
 
             this.particles.next().spawn(p.x, p.y, speedx, speedy, 
                 this.orientation, PARTICLE_TIME, type, true);
+        }
+    }
+
+
+    private spawnSplinters(sx : number, sy : number) : void {
+
+        const BASE_SPEED : number = 1.5;
+        const VERTICAL_JUMP : number = -1.0;
+        const PARTICLE_TIME : number = 40;
+
+        const p : Vector = this.getCenter();
+
+        for (let i : number = 0; i < 4; ++ i) {
+
+            const angle : number = Math.PI/4 + Math.PI/2*i;
+
+            const speedx : number = Math.cos(angle)*BASE_SPEED;
+            const speedy : number = Math.sin(angle)*BASE_SPEED + VERTICAL_JUMP;
+
+            const texX : number = i < 2 ? i % 2 : 1 - (i % 2);
+            const texY : number = (i/2) | 0;
+
+            this.particles.next().spawn(p.x, p.y, speedx, speedy, 
+                this.orientation, PARTICLE_TIME, ParticleType.Textured, true,
+                (sx + texX)*8, (sy + texY)*8);
         }
     }
 
@@ -204,6 +232,8 @@ export class PuzzleObject {
         }
 
         this.moving = false;
+        this.hasMoved = true;
+
         this.moveDirection.zero();
         this.renderPos.makeEqual(this.pos);
     }
@@ -230,6 +260,33 @@ export class PuzzleObject {
             return false;
         }
 
+        // Destroy a crate or rubble
+        if ((this.type == ObjectType.Crate || this.type == ObjectType.Rubble)
+            && o.type == ObjectType.Boulder) {
+
+            this.exist = false;
+
+            this.spawnSplinters(this.type == ObjectType.Rubble ? 4 : 0, 6);
+
+            audioPlayer.playSample(assets.getSample(SampleIndex.Break), 0.80);
+
+            return false;
+        }
+
+        // FIIIIIIREEEEE!
+        if (this.type == ObjectType.Fire && o.type == ObjectType.Crate) {
+            
+            o.exist = false;
+            o.spawnSplinters(0, 6);
+
+            this.exist = false;
+
+            audioPlayer.playSample(assets.getSample(SampleIndex.Break), 0.80);
+
+            return false;
+        }
+
+        // Kill the cat or a human
         if (SMASHABLE_LOOKUP[this.type] ?? false) {
 
             this.exist = false;
@@ -268,6 +325,8 @@ export class PuzzleObject {
 
         this.animationTimer = (this.animationTimer + ANIMATION_SPEED*tick) % 2.0;
         this.setZIndex();
+
+        this.hasMoved = false;
     }
 
 
@@ -309,8 +368,9 @@ export class PuzzleObject {
             break;
 
         case ObjectType.Boulder:
+        case ObjectType.Rubble:
 
-            canvas.drawBitmap(bmp, Flip.None, dx, dy, 16, 48, 16, 16);
+            canvas.drawBitmap(bmp, Flip.None, dx, dy, (this.type - ObjectType.Gem)*16, 48, 16, 16);
             break;
 
         case ObjectType.Gem:
@@ -319,6 +379,13 @@ export class PuzzleObject {
                 dx, 
                 dy + Math.round(Math.sin(this.animationTimer*Math.PI)), 
                 frame*16, 32, 16, 16);
+            break;
+
+        case ObjectType.Fire:
+
+            canvas.drawHorizontallyWavingBitmap(bmp, 
+                1.0, Math.PI*4, this.animationTimer/2.0*Math.PI*2, Flip.None, 
+                dx, dy + 1, 48, 48, 16, 16);
             break;
 
         default:
@@ -350,7 +417,7 @@ export class PuzzleObject {
         this.orientation = direction;
 
         const dir : Vector = directionToVector(direction);
-        if (puzzle.isTileFree(this.pos.x + dir.x, this.pos.y + dir.y, direction)) {
+        if (puzzle.isTileFree(this.pos.x + dir.x, this.pos.y + dir.y, direction, this)) {
 
             this.moveDirection.makeEqual(dir);
             this.moving = true;
@@ -386,6 +453,12 @@ export class PuzzleObject {
     public getType() : ObjectType {
 
         return this.type;
+    }
+
+
+    public didMoveBefore() : boolean {
+
+        return this.hasMoved;
     }
  
 

@@ -192,6 +192,27 @@ export class RenderTarget {
     }
 
 
+    public drawHorizontallyWavingBitmap(bmp : Bitmap, 
+        amplitude : number, period : number, shift : number, flip : Flip = Flip.None,
+        dx : number = 0, dy : number = 0, sx : number = 0, sy : number = 0,
+        sw : number = bmp.width, sh : number = bmp.height) : void {
+
+        const phaseStep : number = Math.PI*2/period;
+        // TODO: This should not work like this
+        const xshift : number = -Math.sin(shift)*amplitude/2;
+
+        for (let y : number = 0; y < sh; ++ y) {
+
+            const phase : number = shift + phaseStep*y;
+            const x : number = dx + Math.sin(phase)*amplitude + xshift;
+            const py : number = (flip & Flip.Vertical) != 0 ? (sh - 1) - y : y;
+
+            this.drawBitmap(bmp, Flip.Horizontal & flip, x, dy + y, sx, sy + py, sw, 1);
+        }
+    }
+         
+
+
     public drawText(font : Bitmap, text : string, 
         dx : number, dy : number, xoff : number = 0, yoff : number = 0, 
         align : Align = Align.Left) : void {

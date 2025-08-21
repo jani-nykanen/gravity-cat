@@ -77,8 +77,8 @@ const GAME_ART_PALETTE_TABLE : (string | undefined) [] = [
     "1002", "1002", "1002", "109A", "109A", "109A", "10L9", "10L9",
     "1056", "1056", "1058", "1076", "1056", "1056", "1078", "1078",
     "1078", "1078", "1078", "1078", "1078", "1078", "1078", "1078", 
-    "107A", "107A", "10CA", "10CB", "10CD", "10CD", "1056", "1056", 
-    "107A", "107A", "10CB", "10CB", "10CD", "10CD", "1056", "1056", 
+    "107A", "107A", "10CA", "10CB", "10CD", "10CD", "10EF", "10EF", 
+    "107A", "107A", "10CB", "10CB", "10CD", "10CD", "10DF", "10EF", 
     "10JK", "10JK", "10JK", "10JK", "10JK", "10JK", "000I", "000I",
     "10JK", "10JK", "10JK", "10JK", "10JK", "10JK", "000I", "000I",
 ];
@@ -327,6 +327,16 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
             0.50,
             OscType.Square, 
             Ramp.Instant)
+        );
+
+     assets.addSample(SampleIndex.Break,
+        audio.createSample(
+            [128, 4, 1.0,
+            112, 3, 0.90,
+            80, 12, 0.60], 
+            0.50,
+            OscType.Sawtooth, 
+            Ramp.Linear)
         );
 
     assets.addSample(SampleIndex.LevelClear,
