@@ -15,7 +15,16 @@ export const enum Direction {
 };
 
 
+const OPPOSITE : Direction[] = [Direction.None, Direction.Left, Direction.Down, Direction.Right, Direction.Up];
+
+
 export const directionToVector = (dir : Direction) : Vector => {
 
     return new Vector(DIR_X[dir], DIR_Y[dir]);
+}
+
+
+export const oppositeDirection = (dir : Direction) : Direction  => {
+
+    return OPPOSITE[dir];
 }

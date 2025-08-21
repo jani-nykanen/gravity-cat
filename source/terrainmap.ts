@@ -1,5 +1,6 @@
 import { signedMod } from "./math.js";
 import { Bitmap, Flip, RenderTarget } from "./gfx.js";
+import { Direction } from "./direction.js";
 
 
 export class TerrainMap {
@@ -16,7 +17,7 @@ export class TerrainMap {
         this.width = width;
         this.height = height;
 
-        const solidLayer : number[] = tilemap.map((v : number) => v == 1 ? 1 : 0);
+        const solidLayer : number[] = tilemap.map((v : number) => v <= 8 ? v : 0);
 
         this.tileData = (new Array<number> (this.width*this.height*4)).fill(0);
         this.computeTileData(solidLayer);
@@ -123,17 +124,63 @@ export class TerrainMap {
     }
 
 
+    private setBridge(x : number, y : number, value : number) : void {
+
+        let p : number = y*this.width*4 + x*2;
+
+        switch (value) {
+
+        case Direction.Up:
+
+            this.tileData[p] = 21;
+            this.tileData[p + 1] = 22;
+            break;
+
+        case Direction.Down:
+
+            p += this.width*2;
+            this.tileData[p] = 31;
+            this.tileData[p + 1] = 32;
+            break;
+
+        case Direction.Left:
+
+            this.tileData[p] = 23;
+            this.tileData[p + this.width*2] = 33;
+            break;
+
+        case Direction.Right:
+
+            this.tileData[p + 1] = 24;
+            this.tileData[p + this.width*2 + 1] = 34;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+
     private computeTileData(solidLayer : number[]) : void {
 
         for (let y : number = 0; y < this.height; ++ y) {
 
             for (let x : number = 0; x < this.width; ++ x) {
 
-                if (!solidLayer[y*this.width + x]) {
+                const v : number = solidLayer[y*this.width + x];
+                if (v == 0) {
 
                     continue;
                 }
-                this.determineTile(solidLayer, x, y);
+
+                if (v == 1) {
+                
+                    this.determineTile(solidLayer, x, y);
+                }
+                else {
+
+                    this.setBridge(x, y, v - 1);
+                }
             }
         }
     }

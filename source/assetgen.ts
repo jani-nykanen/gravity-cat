@@ -48,7 +48,7 @@ const PALETTE_TABLE : number[] = [
     0b010101000, // 5 Dark green
     0b101111000, // 6 Bright green
 
-    0b101011000, // 7 Dark brown
+    0b101011000, // 7 Brown
     0b111111100, // 8 Bright yellow
 
     0b110100010, // 9 Darker beige
@@ -67,13 +67,14 @@ const PALETTE_TABLE : number[] = [
     0b110011101, // J Brighter purple
     0b111101111, // K Pink
 
+    0b100010000, // L Darker brown
 ];
 
 
 const GAME_ART_PALETTE_TABLE : (string | undefined) [] = [
 
-    "1002", "1002", "1002", "109A", "109A", "109A", "0009", "0000",
-    "1002", "1002", "1002", "109A", "109A", "109A", "10HG", "10HG",
+    "1002", "1002", "1002", "109A", "109A", "109A", "0009", "10HG",
+    "1002", "1002", "1002", "109A", "109A", "109A", "10L9", "10L9",
     "1056", "1056", "1058", "1076", "1056", "1056", "1078", "1078",
     "1078", "1078", "1078", "1078", "1078", "1078", "1078", "1078", 
     "107A", "107A", "10CA", "10CB", "10CD", "10CD", "1056", "1056", 
@@ -111,7 +112,7 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
     const GRID_COLORS : string[] = ["#ffdb6d", "#db9224"];
     const BORDER_COLORS : string[] = ["#ffff92", "#924900"];
 
-    const canvas : RenderTarget = new RenderTarget(80, 16, false);
+    const canvas : RenderTarget = new RenderTarget(80, 32, false);
 
     // Grid
     for (let y : number = 0; y < 2; ++ y) {
@@ -138,8 +139,13 @@ const generateTerrainBitmap = (assets : Assets, bmpBase : Bitmap) : void => {
             }
         }
     }
-    
     canvas.drawBitmap(bmpBase, Flip.None, 16, 0, 0, 16, 64, 16);
+
+    // Bridges
+    canvas.drawBitmap(bmpBase, Flip.None, 0, 16, 48, 8, 16, 8);
+    canvas.drawBitmap(bmpBase, Flip.Vertical, 0, 24, 48, 8, 16, 8);
+    canvas.drawBitmap(bmpBase, Flip.None, 16, 16, 48, 8, 16, 8, 16, 8, 8, 8, Math.PI/2);
+    canvas.drawBitmap(bmpBase, Flip.Horizontal, 16, 16, 48, 8, 16, 8, 16, 8, 8, 8, Math.PI/2);
 
     assets.addBitmap(BitmapIndex.Terrain, canvas.toBitmap());
 }

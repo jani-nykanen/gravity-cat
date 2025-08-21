@@ -16,12 +16,13 @@ export const enum ObjectType {
     Crate = 1,
     Human = 2,
     Gem = 3,
+    Boulder = 4,
 };
 
 
-const IMMOVABLE_LOOKUP : boolean[] = [false, false, false, true];
-const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true];
-const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false];
+const IMMOVABLE_LOOKUP : boolean[] = [false, false, false, true, false];
+const PASSTHROUGH_LOOKUP : boolean[] = [true, false, true, true, false];
+const SMASHABLE_LOOKUP : boolean[] = [true, false, true, false, false];
 
 const DEATH_TIME : number = 20;
 
@@ -307,6 +308,11 @@ export class PuzzleObject {
             canvas.drawBitmap(bmp, Flip.None, dx, dy, 0, 48, 16, 16);
             break;
 
+        case ObjectType.Boulder:
+
+            canvas.drawBitmap(bmp, Flip.None, dx, dy, 16, 48, 16, 16);
+            break;
+
         case ObjectType.Gem:
 
             canvas.drawBitmap(bmp, Flip.None, 
@@ -314,7 +320,6 @@ export class PuzzleObject {
                 dy + Math.round(Math.sin(this.animationTimer*Math.PI)), 
                 frame*16, 32, 16, 16);
             break;
-        
 
         default:
             break;
@@ -345,7 +350,7 @@ export class PuzzleObject {
         this.orientation = direction;
 
         const dir : Vector = directionToVector(direction);
-        if (puzzle.isTileFree(this.pos.x + dir.x, this.pos.y + dir.y)) {
+        if (puzzle.isTileFree(this.pos.x + dir.x, this.pos.y + dir.y, direction)) {
 
             this.moveDirection.makeEqual(dir);
             this.moving = true;

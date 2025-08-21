@@ -35,8 +35,8 @@ export const drawFrame = (canvas : RenderTarget, assets : Assets, width : number
     // Corners
     const bmp : Bitmap = assets.getBitmap(BitmapIndex.Base);
 
-    canvas.drawBitmap(bmp, Flip.None, -8, -8, 56, 8, 8, 8);
-    canvas.drawBitmap(bmp, Flip.Horizontal, width, -8, 56, 8, 8, 8);
-    canvas.drawBitmap(bmp, Flip.None, -8, height, 48, 8, 8, 8);
-    canvas.drawBitmap(bmp, Flip.Horizontal, width, height, 48, 8, 8, 8);
+    canvas.drawBitmap(bmp, Flip.Horizontal, -8, -8, 56, 0, 8, 8);
+    canvas.drawBitmap(bmp, Flip.None, width, -8, 56, 0, 8, 8);
+    canvas.drawBitmap(bmp, Flip.None, -8, height, 56, 0, 8, 8);
+    canvas.drawBitmap(bmp, Flip.Horizontal, width, height, 56, 0, 8, 8);
 }

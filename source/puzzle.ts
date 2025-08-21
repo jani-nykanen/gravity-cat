@@ -7,7 +7,7 @@ import { ObjectType, PuzzleObject, PuzzleObjectState } from "./puzzleobject.js";
 import { ActionState, Controller, InputState } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
 import { Vector } from "./vector.js";
-import { Direction } from "./direction.js";
+import { Direction, oppositeDirection } from "./direction.js";
 import { ParticleGenerator } from "./particle.js";
 
 
@@ -108,12 +108,12 @@ export class Puzzle {
             for (let x : number = 0; x < this.width; ++ x) {
 
                 const objectID : number = this.tiles[y*this.width + x];
-                if (objectID <= 1) {
+                if (objectID <= 8) {
 
                     continue;
                 }
 
-                const objectType : ObjectType = (objectID - 2) as ObjectType;
+                const objectType : ObjectType = (objectID - 9) as ObjectType;
                 this.objects.push(new PuzzleObject(x, y, objectType, Direction.Down, this.particles));
             }
         }
@@ -357,14 +357,15 @@ export class Puzzle {
     } 
 
 
-    public isTileFree(x : number, y : number) : boolean {
+    public isTileFree(x : number, y : number, direction : Direction) : boolean {
         
         if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
 
             return false;
         }
 
-        if (this.tiles[y*this.width + x] == 1) {
+        const terrainTile : number = this.tiles[y*this.width + x]
+        if (terrainTile == 1 || terrainTile - 1 == oppositeDirection(direction)) {
 
             return false;
         }

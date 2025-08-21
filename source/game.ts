@@ -119,5 +119,7 @@ export class Game extends Program {
             const t : number = Math.min(1.0, this.levelClearTimer/LEVEL_CLEAR_ANIMATION_STOP_TIME);
             drawLevelClearAnimation(canvas, this.assets, t);
         }
+
+        // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Terrain));
     }
 }
