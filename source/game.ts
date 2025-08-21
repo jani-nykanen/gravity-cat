@@ -1,4 +1,4 @@
-import { Align, Flip, RenderTarget } from "./gfx.js";
+import { Align, Bitmap, Flip, RenderTarget } from "./gfx.js";
 import { Program } from "./program.js";
 import { generateAssets } from "./assetgen.js";
 import { BitmapIndex, Controls, SampleIndex } from "./mnemonics.js";
@@ -8,6 +8,10 @@ import { InputState } from "./controller.js";
 import { drawFrame } from "./frame.js";
 import { TILE_HEIGHT, TILE_WIDTH } from "./tilesize.js";
 import { drawBackground } from "./background.js";
+import { drawLevelClearAnimation } from "./levelclear.js";
+
+
+const LEVEL_CLEAR_ANIMATION_TIME : number = 120;
 
 
 export class Game extends Program {
@@ -16,6 +20,8 @@ export class Game extends Program {
     private puzzle : Puzzle;
 
     private backgroundTimer : number = 0.0;
+    private levelClearTimer : number = 0.0;
+    private levelClearInitiated : boolean = false;
 
 
     constructor(audioCtx : AudioContext) {
@@ -57,6 +63,23 @@ export class Game extends Program {
         const BACKGROUND_ANIMATION_SPEED : number = 1.0/256.0;
 
         this.puzzle.update(this.controller, this.audio, this.assets, this.tick);
+        this.backgroundTimer = (this.backgroundTimer + BACKGROUND_ANIMATION_SPEED) % 1.0;
+
+        if (this.puzzle.hasCleared()) {
+
+            if (!this.levelClearInitiated) {
+
+                this.audio.playSample(this.assets.getSample(SampleIndex.LevelClear), 0.60);
+                this.levelClearInitiated = true;
+            }
+
+            this.levelClearTimer += this.tick;
+            if (this.levelClearTimer >= LEVEL_CLEAR_ANIMATION_TIME) {
+
+                // TODO: Clear level
+            }
+            return;
+        }
 
         // Restart
         if (this.controller.getAction(Controls.Restart).state == InputState.Pressed) {
@@ -69,13 +92,13 @@ export class Game extends Program {
 
             this.puzzle.undo();
         }
-
-        this.backgroundTimer = (this.backgroundTimer + BACKGROUND_ANIMATION_SPEED) % 1.0;
     }
 
 
     public onRedraw() : void {
         
+        const LEVEL_CLEAR_ANIMATION_STOP_TIME : number = 30;
+
         const canvas : RenderTarget = this.canvas;
 
         drawBackground(canvas, this.assets, this.backgroundTimer);
@@ -85,12 +108,16 @@ export class Game extends Program {
         this.puzzle.draw(canvas, this.assets);
 
         canvas.moveTo();
-        // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.GameObjects), Flip.None, 0, 0);
-
         for (let i : number = 0; i < 2; ++ i) {
 
             canvas.drawText(this.assets.getBitmap(BitmapIndex.FontOutlinesWhite), "LEVEL 1",
                 canvas.width/2, 5 - i, -7, 0, Align.Center);
+        }
+
+        if (this.puzzle.hasCleared()) {
+
+            const t : number = Math.min(1.0, this.levelClearTimer/LEVEL_CLEAR_ANIMATION_STOP_TIME);
+            drawLevelClearAnimation(canvas, this.assets, t);
         }
     }
 }

@@ -67,7 +67,7 @@ export class Particle {
         const radius : number = this.timer/this.initialTime*MAX_RADIUS;
 
         canvas.setColor("#000000");
-        canvas.fillEllipse(this.pos.x, this.pos.y, radius);
+        canvas.fillEllipse(this.pos.x, this.pos.y, radius, radius);
     }
 
 

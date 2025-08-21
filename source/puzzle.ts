@@ -1,7 +1,7 @@
 import { Bitmap, RenderTarget } from "./gfx.js";
 import { TerrainMap } from "./terrainmap.js";
 import { Assets } from "./assets.js";
-import { BitmapIndex } from "./mnemonics.js";
+import { BitmapIndex, SampleIndex } from "./mnemonics.js";
 import { TILE_WIDTH, TILE_HEIGHT } from "./tilesize.js";
 import { ObjectType, PuzzleObject, PuzzleObjectState } from "./puzzleobject.js";
 import { ActionState, Controller, InputState } from "./controller.js";
@@ -65,6 +65,8 @@ export class Puzzle {
     private failed : boolean = false;
     private failureTimer : number = 0.0;
 
+    private cleared : boolean = false;
+
     public readonly width : number;
     public readonly height : number;
 
@@ -83,6 +85,19 @@ export class Puzzle {
 
         this.initialState = new PuzzleState(this.objects);
         this.states = new Array<PuzzleState> ();
+    }
+
+
+    private checkIfCleared() : boolean {
+
+        for (const o of this.objects) {
+
+            if (o.getType() == ObjectType.Gem && o.doesExist() && !o.isDying()) {
+
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -105,9 +120,9 @@ export class Puzzle {
     }
 
 
-    private control(controller : Controller) : void {
+    private control(controller : Controller, audio : AudioPlayer, assets : Assets) : void {
 
-        if (this.somethingMoving || this.failed) {
+        if (this.cleared || this.somethingMoving || this.failed) {
 
             return;
         }
@@ -134,6 +149,7 @@ export class Puzzle {
             if (this.initiateMovement(dir)) {
 
                 this.states.push(new PuzzleState(this.objects));
+                audio.playSample(assets.getSample(SampleIndex.Move), 0.40);
             }
         }
     }
@@ -166,7 +182,7 @@ export class Puzzle {
     }
 
 
-    private updateMovement(tick : number) : void {
+    private updateMovement(audio : AudioPlayer, assets : Assets, tick : number) : void {
 
         const GRAVITY : number = 1.0/120.0;
         const MAX_GRAVITY : number = 1.0/2.0;
@@ -195,8 +211,8 @@ export class Puzzle {
 
                     // Note: failure = case 1 || case 2 does not work here
                     // since both functions cause side effects
-                    let failure : boolean = this.objects[i].checkOverlay(this.objects[j]);
-                    failure = this.objects[j].checkOverlay(this.objects[i]) || failure;
+                    let failure : boolean = this.objects[i].checkOverlay(this.objects[j], audio, assets);
+                    failure = this.objects[j].checkOverlay(this.objects[i], audio, assets) || failure;
 
                     if (failure) {
 
@@ -218,6 +234,8 @@ export class Puzzle {
                 this.moveDirection = Direction.None;
                 this.moveTimerSpeed = 0.0;
                 this.moveTimer = 0.0;
+
+                this.cleared = this.checkIfCleared();
             }
         }
     }
@@ -307,8 +325,8 @@ export class Puzzle {
             }
         }
 
-        this.control(controller);
-        this.updateMovement(tick);
+        this.control(controller, audio, assets);
+        this.updateMovement(audio, assets, tick);
         this.updateFailure(tick);
         
         for (const o of this.objects) {
@@ -388,5 +406,11 @@ export class Puzzle {
         this.resetProperties();
 
         return true;
+    }
+
+
+    public hasCleared() : boolean {
+
+        return this.cleared;
     }
 }

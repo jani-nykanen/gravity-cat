@@ -4,7 +4,7 @@ import { Controller } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
 import { Assets } from "./assets.js";
 import { Bitmap, Flip, RenderTarget } from "./gfx.js";
-import { BitmapIndex } from "./mnemonics.js";
+import { BitmapIndex, SampleIndex } from "./mnemonics.js";
 import { Puzzle } from "./puzzle.js";
 import { Direction, directionToVector } from "./direction.js";
 import { ParticleGenerator, ParticleType } from "./particle.js";
@@ -111,16 +111,16 @@ export class PuzzleObject {
     }
 
 
-    private updateSmoke(tick : number) : void {
+    private updateSmoke(moveTimer : number) : void {
 
-        const SMOKE_TIME : number = 5.0;
+        const SMOKE_TIME : number = 1.0;
 
         if (this.type != ObjectType.Player) {
 
             return;
         }
 
-        this.smokeTimer += tick;
+        this.smokeTimer += moveTimer;
         if (this.smokeTimer >= SMOKE_TIME) {
 
             this.smokeTimer -= SMOKE_TIME;
@@ -153,6 +153,8 @@ export class PuzzleObject {
 
         this.renderPos.x = this.pos.x - (1.0 - moveTimer)*this.moveDirection.x;
         this.renderPos.y = this.pos.y - (1.0 - moveTimer)*this.moveDirection.y;
+
+        this.updateSmoke(moveTimer);
     }
 
 
@@ -206,7 +208,7 @@ export class PuzzleObject {
     }
 
 
-    public checkOverlay(o : PuzzleObject) : boolean {
+    public checkOverlay(o : PuzzleObject, audioPlayer : AudioPlayer, assets : Assets) : boolean {
 
         if (!this.exist || this.dying ||
             !o.exist || o.dying || !o.moving || 
@@ -215,11 +217,14 @@ export class PuzzleObject {
             return false;
         }
 
+        // Collect a gem
         if (this.type == ObjectType.Gem && o.type == ObjectType.Player) {
 
             // this.exist = false;
             this.dying = true;
             this.deathTimer = 0.0;
+
+            audioPlayer.playSample(assets.getSample(SampleIndex.Collect), 0.60);
 
             return false;
         }
@@ -231,6 +236,8 @@ export class PuzzleObject {
 
             this.spawnBloodParticles(16, 
                 this.type == ObjectType.Player ? ParticleType.BlackBlood : ParticleType.RedBlood);
+
+            audioPlayer.playSample(assets.getSample(SampleIndex.Kill), 0.50);
 
             return true;
         }
@@ -255,7 +262,6 @@ export class PuzzleObject {
 
         if (this.moving) {
 
-            this.updateSmoke(tick);
             this.updateMovement(moveTimer);
         }
 
@@ -346,6 +352,8 @@ export class PuzzleObject {
             this.pos.x += this.moveDirection.x;
             this.pos.y += this.moveDirection.y;
 
+            this.smokeTimer = 0.0;
+
             return true;
         }
         return false;
@@ -369,6 +377,12 @@ export class PuzzleObject {
         return this.zindex;
     }
 
+
+    public getType() : ObjectType {
+
+        return this.type;
+    }
+ 
 
     public toState() : PuzzleObjectState {
 

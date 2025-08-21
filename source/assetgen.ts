@@ -1,12 +1,38 @@
 import { Assets } from "./assets.js"
 import { AudioPlayer } from "./audioplayer.js";
 import { OscType, Ramp } from "./audiosample.js";
-import { applyPalette } from "./bitmapgen.js";
+import { applyPalette, createBigText } from "./bitmapgen.js";
 import { Bitmap, Flip, RenderTarget } from "./gfx.js"
 import { BitmapIndex, SampleIndex } from "./mnemonics.js"
 
 
 type PaletteLookup = [number, number, number, number][];
+
+
+const enum Note {
+
+    C2 = 65.41,
+    D2 = 73.42,
+    E2 = 82.41,
+    F2 = 87.31,
+    G2 = 98.0,
+    A2 = 110.0,
+    B2 = 123.7,
+    C3 = 130.81,
+    D3 = 146.83,
+    E3 = 164.81,
+    F3 = 174.61,
+    G3 = 196.0,
+    A3 = 220.0,
+    B3 = 246.94,
+    C4 = 261.63,
+    D4 = 293.66,
+    E4 = 329.63,
+    F4 = 349.23,
+    G4 = 392.0,
+    A4 = 440.0,
+    B4 = 493.88,
+}
 
 
 const TRANSPARENT_COLOR : number = 0b100;
@@ -254,17 +280,64 @@ const generateFonts = (assets : Assets, rgb333 : PaletteLookup) : void => {
 }
 
 
+const generateBigText = (assets : Assets) : void => {
+
+    const bmpLevelClear : Bitmap = createBigText(
+        "LEVEL\nCLEAR!", "bold 22px Arial", 96, 48, 20, 3, [
+            [255, 219, 0],
+            [219, 109, 0]
+        ])
+
+    assets.addBitmap(BitmapIndex.LevelClear, bmpLevelClear);
+}
+
+
 const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
 
-    const sampleJump = audio.createSample(
-        [64,  4, 0.20,
-        160, 3, 0.80,
-        256, 2, 0.50], 
-        0.80,
-        OscType.Sawtooth, 
-        Ramp.Exponential);
- 
-    assets.addSample(SampleIndex.Jump, sampleJump);
+    assets.addSample(SampleIndex.Collect, 
+        audio.createSample(
+            [160, 4, 0.60,
+            100, 2, 0.80,
+            256, 8, 1.00],
+            0.35,
+            OscType.Square, 
+            Ramp.Instant)
+        );
+
+    assets.addSample(SampleIndex.Kill,
+        audio.createSample(
+            [128, 2, 0.80,
+            160, 3, 1.0,  
+            96, 12, 0.60],
+            0.70,
+            OscType.Square, 
+            Ramp.Exponential)
+        );
+
+    assets.addSample(SampleIndex.Move,
+        audio.createSample(
+            [112, 4, 1.0,
+            80, 2, 0.30], 
+            0.50,
+            OscType.Square, 
+            Ramp.Instant)
+        );
+
+    assets.addSample(SampleIndex.LevelClear,
+        audio.createSample( 
+            [
+            Note.C3, 15, 0.50,
+            Note.D3, 7.5, 0.70,
+            Note.E3, 7.5, 1.0,
+            Note.F3, 7.5, 1.0,
+            Note.E3, 7.5, 1.0,
+            Note.F3, 15, 1.0,
+            Note.A3, 40, 0.80,
+            ], 
+            0.35,
+            OscType.Square, 
+            Ramp.Instant)
+        );
 }
 
 
@@ -284,6 +357,7 @@ export const generateAssets = (assets : Assets, audio : AudioPlayer) : void => {
     generateTerrainBitmap(assets, bmpGameArt);
     generateGameObjectsBitmap(assets, bmpGameArt);
     generateBackground(assets);
+    generateBigText(assets);
 
     // Sounds
     generateSamples(assets, audio);

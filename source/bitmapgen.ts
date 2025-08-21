@@ -81,3 +81,50 @@ export const cropBitmap = (source : Bitmap, sx : number, sy : number, sw : numbe
 
     return canvas;
 }
+
+
+export const createBigText = (text : string, font : string, 
+    width : number, height : number, fontHeight : number, depth : number,
+    colors : [[number, number, number], [number, number, number]],
+    threshold : number = 127) : Bitmap => {
+
+    const canvas : HTMLCanvasElement = createEmptyCanvas(width, height);
+    const ctx : CanvasRenderingContext2D = canvas.getContext("2d")!;
+
+    ctx.font = font;
+    ctx.textAlign = "center";
+
+    const lines : string[] = text.split("\n");
+
+    for (let y : number = depth - 1; y >= 0; -- y) {
+
+        ctx.fillStyle = y == 0 ? "#ffffff" : "#000000";
+
+        let line : number = 0;
+        for (const l of lines) {
+
+            ctx.fillText(l, width/2, y + (line + 1)*fontHeight);
+            ++ line;
+        }
+    }
+
+    const imageData : ImageData = ctx.getImageData(0, 0, width, height);
+    for (let i : number = 0; i < width*height; ++ i) {
+        
+        if (imageData.data[i*4 + 3] < threshold) {
+
+            imageData.data[i*4 + 3] = 0;
+            continue;
+        }
+
+        const colorIndex : number = imageData.data[i*4] > 128 ? 0 : 1;
+        for (let j : number = 0; j < 3; ++ j) {
+
+            imageData.data[i*4 + j] = colors[colorIndex][j];
+        }
+        imageData.data[i*4 + 3] = 255;
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    return canvas;
+}

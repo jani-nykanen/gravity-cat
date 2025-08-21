@@ -12,12 +12,19 @@ export const enum BitmapIndex {
     Terrain = 5,
     GameObjects = 6,
     Background = 7,
+
+    LevelClear = 8,
 }
 
 
 export const enum SampleIndex {
 
-    Jump = 0,
+    Hit = 0,
+    Kill = 1,
+    Collect = 2,
+    Move = 3,
+
+    LevelClear = 4,
 }
 
 

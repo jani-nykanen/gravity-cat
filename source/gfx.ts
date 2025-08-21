@@ -129,7 +129,7 @@ export class RenderTarget {
     }
 
 
-    public fillRect(dx : number, dy : number, dw : number, dh : number) : void {
+    public fillRect(dx : number = 0.0, dy : number = 0.0, dw : number = this.width, dh : number = this.height) : void {
 
         this.ctx.fillRect(
             (dx + this.translation.x) | 0, 
