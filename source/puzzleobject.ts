@@ -415,7 +415,7 @@ export class PuzzleObject {
 
     public isLocatedIn(x : number, y : number) : boolean {
 
-        if (this.passable) {
+        if (!this.exist || this.dying || this.passable) {
 
             return false;
         }

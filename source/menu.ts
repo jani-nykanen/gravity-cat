@@ -129,7 +129,7 @@ export class Menu {
             // TODO: Sound effect
         }
 
-        if (controller.getAction(Controls.Accept).state == InputState.Pressed) {
+        if (controller.getAction(Controls.Select).state == InputState.Pressed) {
 
             if (this.buttons[this.cursorPos].evaluate()) {
 

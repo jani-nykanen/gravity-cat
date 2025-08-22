@@ -37,7 +37,7 @@ export const enum Controls {
     Left = 2,
     Down = 3,
 
-    Accept = 4,
+    Select = 4,
     Restart = 5,
     Undo = 6,
     Back = 7,

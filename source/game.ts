@@ -10,9 +10,21 @@ import { TILE_HEIGHT, TILE_WIDTH } from "./tilesize.js";
 import { drawBackground } from "./background.js";
 import { drawLevelClearAnimation } from "./levelclear.js";
 import { Menu, MenuButton } from "./menu.js";
+import { LevelMenu } from "./levelmenu.js";
 
 
 const LEVEL_CLEAR_ANIMATION_TIME : number = 120;
+
+
+const enum Scene {
+
+    Game = 0,
+    LevelMenu = 1,
+    Intro = 2,
+    TitleScreen = 3,
+    Ending = 4,
+    StoryIntro = 5,
+}
 
 
 export class Game extends Program {
@@ -21,12 +33,15 @@ export class Game extends Program {
     private puzzle : Puzzle;
 
     private pauseMenu : Menu;
+    private levelMenu : LevelMenu;
 
     private backgroundTimer : number = 0.0;
     private levelClearTimer : number = 0.0;
     private levelClearInitiated : boolean = false;
 
-    private levelIndex : number = 13;
+    private levelIndex : number = 1;
+
+    private scene : Scene = Scene.LevelMenu;
 
 
     constructor(audioCtx : AudioContext) {
@@ -36,65 +51,52 @@ export class Game extends Program {
             {id: Controls.Left, keys: ["ArrowLeft", "KeyA"],  prevent: true},
             {id: Controls.Up, keys: ["ArrowUp", "KeyW"],  prevent: true},
             {id: Controls.Down, keys: ["ArrowDown", "KeyS"],  prevent: true},
-            {id: Controls.Accept, keys: ["Space", "Enter"],  prevent: true},
+            {id: Controls.Select, keys: ["Space", "Enter"],  prevent: true},
             // TODO: Add support for "actual R", not just the key that happens
             // to be in the place of R
             {id: Controls.Restart, keys: ["KeyR"], prevent: true},
             {id: Controls.Undo, keys: ["KeyZ", "Backspace"], prevent: true},
             {id: Controls.Back, keys: ["Escape"], prevent: false},
-            {id: Controls.Pause, keys: ["Escape"], prevent: false}
+            {id: Controls.Pause, keys: ["Escape", "Enter"], prevent: false}
         ]);
 
-        this.puzzle = new Puzzle(LEVEL_DATA[this.levelIndex - 1]);
+        // Redundant
+        this.puzzle = new Puzzle(LEVEL_DATA[0]);
 
         this.pauseMenu = new Menu(
         [
             new MenuButton("RESUME", () : boolean => true),
             new MenuButton("UNDO", () : boolean => {
 
-                // TODO: Undo
+                this.puzzle.undo();
                 return true;
             }),
             new MenuButton("RESTART", () : boolean => {
 
-                // TODO: Restart
+                this.puzzle.restart();
                 return true;
             }),
             new MenuButton("QUIT", () : boolean => {
 
-                // TODO: Quit
+                this.scene = Scene.LevelMenu;
                 return true;
             })  
         ]
         );
+
+        this.levelMenu = new LevelMenu((i : number) : void => {
+
+            this.levelClearInitiated = false;
+            this.levelClearTimer = 0.0;
+            
+            this.scene = Scene.Game;
+            this.levelIndex = i + 1;
+            this.puzzle = new Puzzle(LEVEL_DATA[i]);
+        });
     }
 
 
-    private nextLevel() : void {
-
-        ++ this.levelIndex;
-        // Not very elegant, but meh
-        this.puzzle = new Puzzle(LEVEL_DATA[this.levelIndex - 1]);
-    }
-
-
-    public onInit() : void {
-        
-        this.assets.loadBitmaps(
-            [
-            {id: BitmapIndex.FontRaw, path: "f.png"},
-            {id: BitmapIndex.BaseRaw, path: "b.png"}
-        ]);
-    }
-
-
-    public onLoad() : void {
-        
-        generateAssets(this.assets, this.audio);
-    }
-
-
-    public onUpdate() : void {
+    private updateGameScene() : void {
         
         const BACKGROUND_ANIMATION_SPEED : number = 1.0/256.0;
 
@@ -126,7 +128,7 @@ export class Game extends Program {
             this.levelClearTimer += this.tick;
             if (this.levelClearTimer >= LEVEL_CLEAR_ANIMATION_TIME) {
 
-                this.nextLevel();
+                this.scene = Scene.LevelMenu;
             }
             return;
         }
@@ -145,7 +147,7 @@ export class Game extends Program {
     }
 
 
-    public onRedraw() : void {
+    private drawGameScene() : void {
         
         const LEVEL_CLEAR_ANIMATION_STOP_TIME : number = 30;
 
@@ -178,5 +180,61 @@ export class Game extends Program {
 
         
         // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Terrain));
+    }
+
+
+    public onInit() : void {
+        
+        this.assets.loadBitmaps(
+            [
+            {id: BitmapIndex.FontRaw, path: "f.png"},
+            {id: BitmapIndex.BaseRaw, path: "b.png"}
+        ]);
+    }
+
+
+    public onLoad() : void {
+        
+        generateAssets(this.assets, this.audio);
+    }
+
+
+    public onUpdate() : void {
+        
+        switch (this.scene) {
+
+        case Scene.Game:
+            
+            this.updateGameScene();
+            break;
+
+        case Scene.LevelMenu:
+
+            this.levelMenu.update(this.controller, this.audio, this.assets, this.tick);
+            break;
+
+        default:
+            break;
+        }
+    }
+
+
+    public onRedraw() : void {
+        
+        switch (this.scene) {
+
+        case Scene.Game:
+            
+            this.drawGameScene();
+            break;
+
+        case Scene.LevelMenu:
+
+            this.levelMenu.draw(this.canvas, this.assets);
+            break;
+
+        default:
+            break;
+        }
     }
 }

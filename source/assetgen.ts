@@ -42,8 +42,8 @@ const PALETTE_TABLE : number[] = [
 
     0, // 1 Black
     511, // 2 White
-    0b100100100, // 3 Dark gray
-    0b110110110, // 4 Bright gray
+    0b011011011, // 3 Dark gray
+    0b101101101, // 4 Bright gray
 
     0b010101000, // 5 Dark green
     0b101111000, // 6 Bright green
@@ -83,6 +83,8 @@ const GAME_ART_PALETTE_TABLE : (string | undefined) [] = [
     "107A", "107A", "10CB", "10CB", "10CD", "10CD", "10DF", "10EF", 
     "10JK", "10JK", "10JK", "10JK", "10JK", "10JK", "000I", "000I",
     "10JK", "10JK", "10JK", "10JK", "10JK", "10JK", "000I", "000I",
+    "1042", "1042", "0000", "0000", "0000", "0000", "0000", "0000", 
+    "1042", "1042", "0000", "0000", "0000", "0000", "0000", "0000", 
 ];
 
 
