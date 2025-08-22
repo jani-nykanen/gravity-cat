@@ -215,7 +215,8 @@ export class RenderTarget {
 
     public drawText(font : Bitmap, text : string, 
         dx : number, dy : number, xoff : number = 0, yoff : number = 0, 
-        align : Align = Align.Left) : void {
+        align : Align = Align.Left,
+        period : number = 0.0, amplitude : number = 0.0, shift : number = 0.0 ) : void {
 
         const LINE_SHIFT : number = 2;
 
@@ -238,6 +239,8 @@ export class RenderTarget {
         let x : number = dx;
         let y : number = dy;
 
+        const waveShift : number = period/text.length;
+        
         for (let i : number = 0; i < text.length; ++ i) {
 
             const chr : number = text.charCodeAt(i);
@@ -248,10 +251,12 @@ export class RenderTarget {
                 continue;
             }
 
+            const wave : number = Math.round(Math.sin(shift + i*waveShift)*amplitude);
+
             this.ctx.drawImage(font, 
                 (chr % 16)*cw, 
                 (((chr/16) | 0) - LINE_SHIFT)*ch, 
-                cw, ch, x, y, cw, ch);
+                cw, ch, x, y + wave, cw, ch);
             x += cw + xoff;
         }
     }

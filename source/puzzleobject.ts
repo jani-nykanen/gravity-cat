@@ -203,24 +203,32 @@ export class PuzzleObject {
     }
 
 
+    private killPlayerOrHuman(audio : AudioPlayer, assets : Assets) : void {
+
+        this.exist = false;
+        
+        this.spawnBloodParticles(16, 
+            this.type == ObjectType.Player ? ParticleType.BlackBlood : ParticleType.RedBlood);
+        audio.playSample(assets.getSample(SampleIndex.Kill), 0.50);
+    }
+
+
     private drawDeath(canvas : RenderTarget) : void {
 
         const t : number = this.deathTimer/DEATH_TIME;
         const dx : number = (this.renderPos.x + 0.5)*TILE_WIDTH;
         const dy : number = (this.renderPos.y + 0.5)*TILE_HEIGHT;
 
-        if (this.type == ObjectType.Gem) {
-
-            const innerRadius : number = t*t*16;
-            const outerRadius : number = 4 + t*12;
-
-            canvas.setColor("#ffdbff");
-            canvas.fillRing(dx, dy, innerRadius, outerRadius);
+        if (this.type != ObjectType.Gem && this.type != ObjectType.Fire) {
 
             return;
         }
 
-        // TODO: Other objects, maybe (at least the fire)
+        const innerRadius : number = t*t*16;
+        const outerRadius : number = 4 + t*12;
+
+        canvas.setColor(this.type == ObjectType.Gem ? "#ffdbff" : "#ff6d00");
+        canvas.fillRing(dx, dy, innerRadius, outerRadius);
     }
 
 
@@ -239,7 +247,7 @@ export class PuzzleObject {
     }
 
 
-    public checkOverlay(o : PuzzleObject, audioPlayer : AudioPlayer, assets : Assets) : boolean {
+    public checkOverlay(o : PuzzleObject, audio : AudioPlayer, assets : Assets) : boolean {
 
         if (!this.exist || this.dying ||
             !o.exist || o.dying || !o.moving || 
@@ -255,7 +263,7 @@ export class PuzzleObject {
             this.dying = true;
             this.deathTimer = 0.0;
 
-            audioPlayer.playSample(assets.getSample(SampleIndex.Collect), 0.60);
+            audio.playSample(assets.getSample(SampleIndex.Collect), 0.60);
 
             return false;
         }
@@ -268,34 +276,45 @@ export class PuzzleObject {
 
             this.spawnSplinters(this.type == ObjectType.Rubble ? 4 : 0, 6);
 
-            audioPlayer.playSample(assets.getSample(SampleIndex.Break), 0.80);
+            audio.playSample(assets.getSample(SampleIndex.Break), 0.80);
 
             return false;
         }
 
         // FIIIIIIREEEEE!
-        if (this.type == ObjectType.Fire && o.type == ObjectType.Crate) {
+        if (this.type == ObjectType.Fire) {
             
-            o.exist = false;
-            o.spawnSplinters(0, 6);
+            let returnValue : boolean = false;
 
-            this.exist = false;
+            if (o.type == ObjectType.Crate) {
 
-            audioPlayer.playSample(assets.getSample(SampleIndex.Break), 0.80);
+                o.exist = false;
+                o.spawnSplinters(0, 6);
 
-            return false;
+                audio.playSample(assets.getSample(SampleIndex.Break), 0.80);
+            }
+            else if (o.type == ObjectType.Boulder) {
+
+                audio.playSample(assets.getSample(SampleIndex.Break), 0.80);
+            }
+            else if (o.type == ObjectType.Player || o.type == ObjectType.Human) {
+
+                audio.playSample(assets.getSample(SampleIndex.Kill), 0.50);
+                o.killPlayerOrHuman(audio, assets);
+                
+                returnValue = true;
+            }
+
+            this.deathTimer = 0.0;
+            this.dying = true;
+
+            return returnValue;
         }
 
         // Kill the cat or a human
         if (SMASHABLE_LOOKUP[this.type] ?? false) {
 
-            this.exist = false;
-            this.deathTimer = 0.0;
-
-            this.spawnBloodParticles(16, 
-                this.type == ObjectType.Player ? ParticleType.BlackBlood : ParticleType.RedBlood);
-
-            audioPlayer.playSample(assets.getSample(SampleIndex.Kill), 0.50);
+            this.killPlayerOrHuman(audio, assets);
 
             return true;
         }

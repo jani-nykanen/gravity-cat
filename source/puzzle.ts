@@ -90,6 +90,11 @@ export class Puzzle {
 
     private checkIfCleared() : boolean {
 
+        if (this.failed) {
+
+            return false;
+        }
+
         for (const o of this.objects) {
 
             if (o.getType() == ObjectType.Gem && o.doesExist() && !o.isDying()) {

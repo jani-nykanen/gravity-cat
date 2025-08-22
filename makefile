@@ -27,6 +27,11 @@ server:
 levels:
 	echo -n "export const LEVEL_DATA : string[] = [\n" > $(LEVEL_SRC_PATH)
 	$(mapconv) $(LEVEL_FOLDER)/1.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/2.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/3.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/4.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/5.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/6.tmx >> $(LEVEL_SRC_PATH)
 	echo -n "]" >> $(LEVEL_SRC_PATH)
 
 

@@ -23,6 +23,8 @@ export class Game extends Program {
     private levelClearTimer : number = 0.0;
     private levelClearInitiated : boolean = false;
 
+    private levelIndex : number = 6;
+
 
     constructor(audioCtx : AudioContext) {
 
@@ -38,7 +40,15 @@ export class Game extends Program {
             {id: Controls.Undo, keys: ["KeyZ", "Backspace"], prevent: true}
         ]);
 
-        this.puzzle = new Puzzle(LEVEL_DATA[0]);
+        this.puzzle = new Puzzle(LEVEL_DATA[this.levelIndex - 1]);
+    }
+
+
+    private nextLevel() : void {
+
+        ++ this.levelIndex;
+        // Not very elegant, but meh
+        this.puzzle = new Puzzle(LEVEL_DATA[this.levelIndex - 1]);
     }
 
 
@@ -76,7 +86,7 @@ export class Game extends Program {
             this.levelClearTimer += this.tick;
             if (this.levelClearTimer >= LEVEL_CLEAR_ANIMATION_TIME) {
 
-                // TODO: Clear level
+                this.nextLevel();
             }
             return;
         }
@@ -110,8 +120,8 @@ export class Game extends Program {
         canvas.moveTo();
         for (let i : number = 0; i < 2; ++ i) {
 
-            canvas.drawText(this.assets.getBitmap(BitmapIndex.FontOutlinesWhite), "LEVEL 1",
-                canvas.width/2, 5 - i, -7, 0, Align.Center);
+            canvas.drawText(this.assets.getBitmap(BitmapIndex.FontOutlinesWhite), `LEVEL ${this.levelIndex}`,
+                canvas.width/2, 5 - i, -7, 0, Align.Center, Math.PI*2, 2, this.backgroundTimer*Math.PI*6);
         }
 
         if (this.puzzle.hasCleared()) {
