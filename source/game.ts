@@ -23,7 +23,7 @@ export class Game extends Program {
     private levelClearTimer : number = 0.0;
     private levelClearInitiated : boolean = false;
 
-    private levelIndex : number = 6;
+    private levelIndex : number = 12;
 
 
     constructor(audioCtx : AudioContext) {

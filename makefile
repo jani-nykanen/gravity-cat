@@ -32,6 +32,12 @@ levels:
 	$(mapconv) $(LEVEL_FOLDER)/4.tmx >> $(LEVEL_SRC_PATH)
 	$(mapconv) $(LEVEL_FOLDER)/5.tmx >> $(LEVEL_SRC_PATH)
 	$(mapconv) $(LEVEL_FOLDER)/6.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/7.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/8.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/9.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/10.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/11.tmx >> $(LEVEL_SRC_PATH)
+	$(mapconv) $(LEVEL_FOLDER)/12.tmx >> $(LEVEL_SRC_PATH)
 	echo -n "]" >> $(LEVEL_SRC_PATH)
 
 
