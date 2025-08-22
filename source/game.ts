@@ -9,6 +9,7 @@ import { drawFrame } from "./frame.js";
 import { TILE_HEIGHT, TILE_WIDTH } from "./tilesize.js";
 import { drawBackground } from "./background.js";
 import { drawLevelClearAnimation } from "./levelclear.js";
+import { Menu, MenuButton } from "./menu.js";
 
 
 const LEVEL_CLEAR_ANIMATION_TIME : number = 120;
@@ -19,11 +20,13 @@ export class Game extends Program {
 
     private puzzle : Puzzle;
 
+    private pauseMenu : Menu;
+
     private backgroundTimer : number = 0.0;
     private levelClearTimer : number = 0.0;
     private levelClearInitiated : boolean = false;
 
-    private levelIndex : number = 12;
+    private levelIndex : number = 13;
 
 
     constructor(audioCtx : AudioContext) {
@@ -33,14 +36,37 @@ export class Game extends Program {
             {id: Controls.Left, keys: ["ArrowLeft", "KeyA"],  prevent: true},
             {id: Controls.Up, keys: ["ArrowUp", "KeyW"],  prevent: true},
             {id: Controls.Down, keys: ["ArrowDown", "KeyS"],  prevent: true},
-            {id: Controls.Accept, keys: ["Space"],  prevent: true},
+            {id: Controls.Accept, keys: ["Space", "Enter"],  prevent: true},
             // TODO: Add support for "actual R", not just the key that happens
             // to be in the place of R
             {id: Controls.Restart, keys: ["KeyR"], prevent: true},
-            {id: Controls.Undo, keys: ["KeyZ", "Backspace"], prevent: true}
+            {id: Controls.Undo, keys: ["KeyZ", "Backspace"], prevent: true},
+            {id: Controls.Back, keys: ["Escape"], prevent: false},
+            {id: Controls.Pause, keys: ["Escape"], prevent: false}
         ]);
 
         this.puzzle = new Puzzle(LEVEL_DATA[this.levelIndex - 1]);
+
+        this.pauseMenu = new Menu(
+        [
+            new MenuButton("RESUME", () : boolean => true),
+            new MenuButton("UNDO", () : boolean => {
+
+                // TODO: Undo
+                return true;
+            }),
+            new MenuButton("RESTART", () : boolean => {
+
+                // TODO: Restart
+                return true;
+            }),
+            new MenuButton("QUIT", () : boolean => {
+
+                // TODO: Quit
+                return true;
+            })  
+        ]
+        );
     }
 
 
@@ -71,6 +97,20 @@ export class Game extends Program {
     public onUpdate() : void {
         
         const BACKGROUND_ANIMATION_SPEED : number = 1.0/256.0;
+
+        if (this.pauseMenu.isActive()) {
+
+            this.pauseMenu.update(this.controller, this.audio, true);
+            return;
+        }
+
+        if (!this.puzzle.hasCleared() &&
+            this.controller.getAction(Controls.Pause).state == InputState.Pressed) {
+
+            this.pauseMenu.activate(0);
+            return;
+        }
+
 
         this.puzzle.update(this.controller, this.audio, this.assets, this.tick);
         this.backgroundTimer = (this.backgroundTimer + BACKGROUND_ANIMATION_SPEED) % 1.0;
@@ -124,12 +164,19 @@ export class Game extends Program {
                 canvas.width/2, 5 - i, -7, 0, Align.Center, Math.PI*2, 2, this.backgroundTimer*Math.PI*6);
         }
 
+        if (this.pauseMenu.isActive()) {
+
+            this.pauseMenu.draw(canvas, this.assets, 2, 2, 0.50);
+            return;
+        }
+
         if (this.puzzle.hasCleared()) {
 
             const t : number = Math.min(1.0, this.levelClearTimer/LEVEL_CLEAR_ANIMATION_STOP_TIME);
             drawLevelClearAnimation(canvas, this.assets, t);
         }
 
+        
         // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Terrain));
     }
 }

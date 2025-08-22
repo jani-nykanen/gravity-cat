@@ -68,6 +68,8 @@ const PALETTE_TABLE : number[] = [
     0b111101111, // K Pink
 
     0b100010000, // L Darker brown
+
+    0b111111010, // M Yellow
 ];
 
 
@@ -275,10 +277,17 @@ const generateFonts = (assets : Assets, rgb333 : PaletteLookup) : void => {
     const bmpFontWhite : Bitmap = applyPalette(bmpFontRaw, 
         (new Array<(string | undefined)>(16*4)).fill("0002"), 
         PALETTE_TABLE, rgb333);
+    const bmpFontYellow : Bitmap = applyPalette(bmpFontRaw, 
+        (new Array<(string | undefined)>(16*4)).fill("000M"), 
+        PALETTE_TABLE, rgb333);
     const bmpFontBlack : Bitmap = applyPalette(bmpFontRaw, 
         (new Array<(string | undefined)>(16*4)).fill("0001"), 
         PALETTE_TABLE, rgb333);
-    assets.addBitmap(BitmapIndex.FontRaw, bmpFontWhite);
+        
+    assets.addBitmap(BitmapIndex.FontRaw, bmpFontRaw);
+
+    assets.addBitmap(BitmapIndex.FontWhite, bmpFontWhite);
+    assets.addBitmap(BitmapIndex.FontYellow, bmpFontYellow);
 
     // Outlined fonts
     assets.addBitmap(BitmapIndex.FontOutlinesWhite, 

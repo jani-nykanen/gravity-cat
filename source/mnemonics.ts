@@ -6,14 +6,15 @@ export const enum BitmapIndex {
     BaseRaw = 1,
 
     FontWhite = 2,
-    FontOutlinesWhite = 3,
-    Base = 4,
+    FontYellow = 3,
+    FontOutlinesWhite = 4,
+    Base = 5,
 
-    Terrain = 5,
-    GameObjects = 6,
-    Background = 7,
+    Terrain = 6,
+    GameObjects = 7,
+    Background = 8,
 
-    LevelClear = 8,
+    LevelClear = 9,
 }
 
 
@@ -38,5 +39,7 @@ export const enum Controls {
 
     Accept = 4,
     Restart = 5,
-    Undo = 6
+    Undo = 6,
+    Back = 7,
+    Pause = 8,
 }
