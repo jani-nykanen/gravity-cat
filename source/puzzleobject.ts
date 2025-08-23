@@ -90,10 +90,10 @@ export class PuzzleObject {
 
     private spawnBloodParticles(amount : number, type : ParticleType) : void {
 
-        const H_SPEED_RANGE : number = 2.5;
+        const H_SPEED_RANGE : number = 2.0;
         const V_SPEED_MIN : number = -4.0;
-        const V_SPEED_MAX : number = 2.0;
-        const PARTICLE_TIME : number = 40;
+        const V_SPEED_MAX : number = 1.0;
+        const PARTICLE_TIME : number = 30;
 
         const p : Vector = this.getCenter();
 
@@ -108,13 +108,14 @@ export class PuzzleObject {
     }
 
 
-    private spawnSplinters(sx : number, sy : number) : void {
+    private spawnSplinters(sx : number, sy : number, direction : Direction) : void {
 
         const BASE_SPEED : number = 1.5;
         const VERTICAL_JUMP : number = -1.0;
-        const PARTICLE_TIME : number = 40;
+        const PARTICLE_TIME : number = 30;
 
-        const p : Vector = this.getCenter();
+        const cornerx : number = this.renderPos.x*TILE_WIDTH;
+        const cornery : number = this.renderPos.y*TILE_HEIGHT;
 
         for (let i : number = 0; i < 4; ++ i) {
 
@@ -126,8 +127,9 @@ export class PuzzleObject {
             const texX : number = i < 2 ? i % 2 : 1 - (i % 2);
             const texY : number = (i/2) | 0;
 
-            this.particles.next().spawn(p.x, p.y, speedx, speedy, 
-                this.orientation, PARTICLE_TIME, ParticleType.Textured, true,
+            this.particles.next().spawn(cornerx + texX*8 + 4, cornery + texY*8 + 4, 
+                speedx, speedy, 
+                direction, PARTICLE_TIME, ParticleType.Textured, true,
                 (sx + texX)*8, (sy + texY)*8);
         }
     }
@@ -227,8 +229,14 @@ export class PuzzleObject {
         const innerRadius : number = t*t*16;
         const outerRadius : number = 4 + t*12;
 
-        canvas.setColor(this.type == ObjectType.Gem ? "#ffdbff" : "#ff6d00");
+        const foregroundCOlor : string = this.type == ObjectType.Gem ? "#ffdbff" : "#ff9200";
+        const backgroundColor : string = this.type == ObjectType.Gem ? "#db6db6" : "#b62400";
+
+        canvas.setColor(backgroundColor);
         canvas.fillRing(dx, dy, innerRadius, outerRadius);
+
+        canvas.setColor(foregroundCOlor);
+        canvas.fillRing(dx - 1, dy - 1, innerRadius, outerRadius - 2);
     }
 
 
@@ -274,7 +282,7 @@ export class PuzzleObject {
 
             this.exist = false;
 
-            this.spawnSplinters(this.type == ObjectType.Rubble ? 4 : 0, 6);
+            this.spawnSplinters(this.type == ObjectType.Rubble ? 4 : 0, 6, o.orientation);
 
             audio.playSample(assets.getSample(SampleIndex.Break), 0.80);
 
@@ -289,7 +297,7 @@ export class PuzzleObject {
             if (o.type == ObjectType.Crate) {
 
                 o.exist = false;
-                o.spawnSplinters(0, 6);
+                o.spawnSplinters(0, 6, o.orientation);
 
                 audio.playSample(assets.getSample(SampleIndex.Break), 0.80);
             }
