@@ -25,8 +25,12 @@ export const enum SampleIndex {
     Collect = 2,
     Move = 3,
     Break = 4,
-
     LevelClear = 5,
+
+    Select = 6,
+    Choose = 7,
+    Undo = 8,
+    Restart = 9,
 }
 
 

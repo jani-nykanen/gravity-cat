@@ -365,6 +365,18 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
             OscType.Square, 
             Ramp.Instant)
         );
+
+     for (let i : number = 0; i < 2; ++ i) {
+
+        assets.addSample(i == 0 ? SampleIndex.Select : SampleIndex.Choose,
+            audio.createSample( 
+            [128 - i*8, 6 + i*2, 1.0,
+            96 - i*8, 4 + i*2, 0.30], 
+            0.30 - i*0.05,
+            OscType.Square, 
+            Ramp.Instant)
+        );
+    }
 }
 
 

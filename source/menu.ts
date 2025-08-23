@@ -2,7 +2,7 @@ import { RenderTarget, Bitmap } from "./gfx.js";
 import { negMod } from "./math.js";
 import { ActionState, Controller, InputState } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
-import { BitmapIndex, Controls } from "./mnemonics.js";
+import { BitmapIndex, Controls, SampleIndex } from "./mnemonics.js";
 import { Assets } from "./assets.js";
 
 
@@ -96,7 +96,7 @@ export class Menu {
     }
 
 
-    public update(controller : Controller, audio : AudioPlayer, canQuit : boolean = false) : void {
+    public update(controller : Controller, audio : AudioPlayer, assets : Assets, canQuit : boolean = false) : void {
 
         if (!this.active) {
 
@@ -105,7 +105,7 @@ export class Menu {
 
         if (canQuit && controller.getAction(Controls.Back).state == InputState.Pressed) {
             
-            // TODO: Sound effect
+            audio.playSample(assets.getSample(SampleIndex.Choose), 0.60);
             this.active = false;
             return;
         }
@@ -126,7 +126,7 @@ export class Menu {
 
             this.cursorPos = negMod(this.cursorPos, this.buttons.length);
             
-            // TODO: Sound effect
+            audio.playSample(assets.getSample(SampleIndex.Select), 0.50);
         }
 
         if (controller.getAction(Controls.Select).state == InputState.Pressed) {
@@ -135,7 +135,7 @@ export class Menu {
 
                 this.active = false;
             }
-            // TODO: Sound effect
+            audio.playSample(assets.getSample(SampleIndex.Choose), 0.60);
         }
     }
 

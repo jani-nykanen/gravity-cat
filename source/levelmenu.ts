@@ -3,7 +3,7 @@ import { ActionState, Controller, InputState } from "./controller.js";
 import { AudioPlayer } from "./audioplayer.js";
 import { Assets } from "./assets.js";
 import { Vector } from "./vector.js";
-import { BitmapIndex, Controls } from "./mnemonics.js";
+import { BitmapIndex, Controls, SampleIndex } from "./mnemonics.js";
 import { negMod } from "./math.js";
 import { approachValue } from "./utility.js";
 
@@ -182,6 +182,15 @@ export class LevelMenu {
 
         this.backgroundTimer = (this.backgroundTimer + BACKGROUND_SPEED*tick) % 4.0;
         this.updateButtonDepths(tick);
+
+        if (controller.getAction(Controls.Select).state == InputState.Pressed) {
+
+            audio.playSample(assets.getSample(SampleIndex.Choose), 0.60);
+
+            this.cursorMoving = false;
+            this.cursorPos.makeEqual(this.cursorTarget);
+            this.selectEvent(this.cursorPos.y*4 + this.cursorPos.x);
+        }
         this.computeCursorRenderPosition();
 
         if (this.cursorMoving) {
@@ -224,17 +233,13 @@ export class LevelMenu {
         this.cursorTarget.x = negMod(this.cursorTarget.x, 4);
         this.cursorTarget.y = negMod(this.cursorTarget.y, 3);
 
-        if (this.cursorTarget.x != this.cursorPos.x || this.cursorTarget.y != this.cursorPos.y) {
+        if (this.cursorTarget.x != this.cursorPos.x || 
+            this.cursorTarget.y != this.cursorPos.y) {
             
             this.cursorMoving = true;
             this.moveTimer = 0.0;
-        }
 
-        if (controller.getAction(Controls.Select).state == InputState.Pressed) {
-
-            this.cursorMoving = false;
-            this.cursorTarget.makeEqual(this.cursorPos);
-            this.selectEvent(this.cursorPos.y*4 + this.cursorPos.x);
+            audio.playSample(assets.getSample(SampleIndex.Select), 0.50);
         }
     }
 

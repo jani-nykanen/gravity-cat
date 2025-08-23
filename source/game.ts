@@ -123,13 +123,14 @@ export class Game extends Program {
 
         if (this.pauseMenu.isActive()) {
 
-            this.pauseMenu.update(this.controller, this.audio, true);
+            this.pauseMenu.update(this.controller, this.audio, this.assets, true);
             return;
         }
 
         if (!this.puzzle.hasCleared() &&
             this.controller.getAction(Controls.Pause).state == InputState.Pressed) {
 
+            this.audio.playSample(this.assets.getSample(SampleIndex.Choose), 0.60);
             this.pauseMenu.activate(0);
             return;
         }
