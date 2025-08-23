@@ -23,7 +23,7 @@ const BOX_WIDTH : number = 32;
 const BOX_HEIGHT : number = 24;
 const BOX_OFF_X : number = 16;
 const BOX_OFF_Y : number = 16;
-const BUTTONS_TOP_OFF : number = 8;
+const BUTTONS_TOP_OFF : number = 0;
 
 const CURSOR_MOVE_SPEED : number = 1.0/12.0;
 
@@ -170,7 +170,7 @@ export class LevelMenu {
         const handx : number = this.cursorRenderPos.x + BOX_WIDTH/6.0;
         const handy : number = this.cursorRenderPos.y + BOX_HEIGHT/4.0;
 
-        const shifty : number = Math.round(Math.sin(this.backgroundTimer*Math.PI*2));
+        const shifty : number = Math.round(Math.sin(this.backgroundTimer*Math.PI*4));
 
         canvas.drawBitmap(bmpBase, Flip.None, handx, handy + shifty, 0, 64, 16, 16);
     }
@@ -178,7 +178,7 @@ export class LevelMenu {
 
     public update(controller : Controller, audio : AudioPlayer, assets : Assets, tick : number) : void {
 
-        const BACKGROUND_SPEED : number = 1.0/32.0;
+        const BACKGROUND_SPEED : number = 1.0/60.0;
 
         this.backgroundTimer = (this.backgroundTimer + BACKGROUND_SPEED*tick) % 4.0;
         this.updateButtonDepths(tick);
@@ -246,13 +246,15 @@ export class LevelMenu {
 
     public draw(canvas : RenderTarget, assets : Assets) : void {
 
+        const HEADER_Y : number = 12;
+
         this.drawBackground(canvas);
     
         // Header
         for (let i : number = 0; i < 2; ++ i) {
         
             canvas.drawText(assets.getBitmap(BitmapIndex.FontOutlinesWhite), "SELECT A LEVEL",
-                    canvas.width/2, 8 - i, -7, 0, Align.Center, Math.PI*4, 2, this.backgroundTimer*Math.PI);
+                    canvas.width/2, HEADER_Y - i, -7, 0, Align.Center, Math.PI*4, 2, this.backgroundTimer*Math.PI*2);
         }
 
         // Boxes

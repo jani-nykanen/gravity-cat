@@ -119,7 +119,7 @@ export class Game extends Program {
 
     private updateGameScene() : void {
         
-        const BACKGROUND_ANIMATION_SPEED : number = 1.0/256.0;
+        const BACKGROUND_ANIMATION_SPEED : number = 1.0/240.0;
 
         if (this.pauseMenu.isActive()) {
 
