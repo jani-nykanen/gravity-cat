@@ -7,13 +7,16 @@ import { LEVEL_DATA } from "./leveldata.js";
 import { InputState } from "./controller.js";
 import { drawFrame } from "./frame.js";
 import { TILE_HEIGHT, TILE_WIDTH } from "./tilesize.js";
-import { drawBackground } from "./background.js";
-import { drawLevelClearAnimation } from "./levelclear.js";
 import { Menu, MenuButton } from "./menu.js";
 import { LevelMenu } from "./levelmenu.js";
+import { Transition, TransitionType } from "./transition.js";
+import { Vector } from "./vector.js";
 
 
 const LEVEL_CLEAR_ANIMATION_TIME : number = 120;
+
+const WATER_COLORS : string[] = ["#92dbff", "#49b6ff", "#248fdb"];
+const WATER_YOFF : number[] = [0, 2, 8];
 
 
 const enum Scene {
@@ -34,6 +37,8 @@ export class Game extends Program {
 
     private pauseMenu : Menu;
     private levelMenu : LevelMenu;
+
+    private transition : Transition;
 
     private backgroundTimer : number = 0.0;
     private levelClearTimer : number = 0.0;
@@ -78,21 +83,37 @@ export class Game extends Program {
             }),
             new MenuButton("QUIT", () : boolean => {
 
-                this.scene = Scene.LevelMenu;
+                this.transition.activate(TransitionType.Fade, 1.0/20.0, true,
+                    () : void => {
+                        this.scene = Scene.LevelMenu;
+                    }
+                )
                 return true;
             })  
         ]
         );
 
-        this.levelMenu = new LevelMenu((i : number) : void => {
+        this.levelMenu = new LevelMenu(
+            this.canvas.width, this.canvas.height,
+            (i : number) : void => {
 
-            this.levelClearInitiated = false;
-            this.levelClearTimer = 0.0;
-            
-            this.scene = Scene.Game;
-            this.levelIndex = i + 1;
-            this.puzzle = new Puzzle(LEVEL_DATA[i]);
-        });
+                const cursorPos : Vector = this.levelMenu.getCursorCenter();
+                this.transition.activate(TransitionType.Circle, 1.0/30.0, true,
+                    () : void => {
+                        this.levelClearInitiated = false;
+                        this.levelClearTimer = 0.0;
+                        
+                        this.scene = Scene.Game;
+                        this.levelIndex = i + 1;
+                        this.puzzle = new Puzzle(LEVEL_DATA[i]);
+
+                        this.transition.setCenter(this.canvas.width/2, this.canvas.height/2);
+                    },
+                    cursorPos.x, cursorPos.y
+                )
+            });
+
+        this.transition = new Transition(this.canvas.width, this.canvas.height);
     }
 
 
@@ -128,7 +149,13 @@ export class Game extends Program {
             this.levelClearTimer += this.tick;
             if (this.levelClearTimer >= LEVEL_CLEAR_ANIMATION_TIME) {
 
-                this.scene = Scene.LevelMenu;
+                this.transition.activate(TransitionType.Fade, 1.0/20.0, true,
+                    () : void => {
+                        
+                        this.levelMenu.markLevelAsCleared(this.levelIndex - 1);
+                        this.scene = Scene.LevelMenu;
+                    }
+                );
             }
             return;
         }
@@ -147,13 +174,73 @@ export class Game extends Program {
     }
 
 
-    private drawGameScene() : void {
-        
+    private drawLevelClearScreen() : void {
+
         const LEVEL_CLEAR_ANIMATION_STOP_TIME : number = 30;
 
         const canvas : RenderTarget = this.canvas;
 
-        drawBackground(canvas, this.assets, this.backgroundTimer);
+        const bmpLevelClear : Bitmap = this.assets.getBitmap(BitmapIndex.LevelClear);
+
+        const dx : number = canvas.width/2 - bmpLevelClear.width/2;
+        const dy : number = canvas.height/2 - bmpLevelClear.height/2;
+
+        const t : number = Math.min(1.0, this.levelClearTimer/LEVEL_CLEAR_ANIMATION_STOP_TIME);
+        const shiftx : number = (canvas.width/2 + bmpLevelClear.width/2)*(1.0 - t);
+        
+        canvas.setColor("rgba(0,0,0,0.33)");
+        canvas.fillRect();
+
+        for (let i : number = 0; i < 2; ++ i) {
+
+            const dir : number = -1 + 2*(1 - i);
+            const shifty : number = bmpLevelClear.height/2*i;
+
+            canvas.drawBitmap(bmpLevelClear, Flip.None, 
+                dx + dir*shiftx, dy + shifty, 
+                0, shifty, 
+                bmpLevelClear.width, bmpLevelClear.height/2);
+        }
+    }
+
+
+    private drawBackground() : void {
+
+        const CLOUD_Y : number = 88;
+
+        const canvas : RenderTarget = this.canvas;
+
+        canvas.clearScreen("#49b6ff");
+    
+        const bmp : Bitmap = this.assets.getBitmap(BitmapIndex.Background);
+    
+        // Clouds
+        const loop : number = Math.ceil(canvas.width/bmp.width) + 1;
+        const shiftx : number = this.backgroundTimer*bmp.width;
+        for (let x : number = 0; x < loop; ++ x) {
+    
+            canvas.drawBitmap(bmp, Flip.None, x*bmp.width - shiftx, CLOUD_Y, 0, 0, 128, 64);
+        }
+    
+        // Water
+        const waterSurface : number = CLOUD_Y + 64;
+        for (let y : number = 0; y < 3; ++ y) {
+    
+            canvas.setColor(WATER_COLORS[y]);
+            const dy : number = waterSurface + WATER_YOFF[y];
+            canvas.fillRect(0, dy, canvas.width, canvas.height - dy);
+        }
+    
+        // Sun
+        canvas.drawBitmap(bmp, Flip.None, canvas.width - 56, 8, 0, 64, 48, 48);
+    }
+
+
+    private drawGameScene() : void {
+        
+        const canvas : RenderTarget = this.canvas;
+
+        this.drawBackground();
 
         this.puzzle.setCamera(canvas);
         drawFrame(canvas, this.assets, this.puzzle.width*TILE_WIDTH, this.puzzle.height*TILE_HEIGHT);
@@ -174,8 +261,7 @@ export class Game extends Program {
 
         if (this.puzzle.hasCleared()) {
 
-            const t : number = Math.min(1.0, this.levelClearTimer/LEVEL_CLEAR_ANIMATION_STOP_TIME);
-            drawLevelClearAnimation(canvas, this.assets, t);
+            this.drawLevelClearScreen();
         }
 
         
@@ -201,6 +287,12 @@ export class Game extends Program {
 
     public onUpdate() : void {
         
+        if (this.transition.isActive()) {
+
+            this.transition.update(this.tick);
+            return;
+        }
+
         switch (this.scene) {
 
         case Scene.Game:
@@ -236,5 +328,7 @@ export class Game extends Program {
         default:
             break;
         }
+
+        this.transition.draw(this.canvas);
     }
 }

@@ -9,7 +9,7 @@ import { Assets } from "./assets.js";
 export type MenuButtonCallback = () => boolean;
 
 
-const BOX_COLORS : string[] = ["#000000", "#929292", "#ffffff"];
+const BOX_COLORS : string[] = ["#00246d", "#929292", "#ffffff"];
 
 
 const drawBox = (canvas : RenderTarget, dx : number, dy : number, dw : number, dh : number) : void => {
