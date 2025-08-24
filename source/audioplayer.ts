@@ -38,4 +38,16 @@ export class AudioPlayer {
         }
         catch (e) {}
     }
+
+
+    public toggleAudio(state : boolean = !this.enabled) : void {
+
+        this.enabled = state;
+    }
+
+
+    public getStateString() : string {
+
+        return "AUDIO: " + (this.enabled ? "ON " : "OFF");
+    }
 }

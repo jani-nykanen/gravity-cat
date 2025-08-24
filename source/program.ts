@@ -55,12 +55,12 @@ export class Program {
 
             if (this.initialized) {
 
-                this.onUpdate?.();
+                this.onUpdate();
             }
 
             if (loaded && !this.initialized) {
                 
-                this.onLoad?.();
+                this.onLoad();
                 this.initialized = true;
             }
                 
@@ -75,7 +75,7 @@ export class Program {
 
             if (loaded) {
 
-                this.onRedraw?.();
+                this.onRedraw();
             }
             else {
 
@@ -89,13 +89,16 @@ export class Program {
 
     public run() : void {
 
-        this.onInit?.();
+        this.onInit();
         this.loop(0.0);
     }
 
 
-    public onInit?() : void;
-    public onLoad?() : void;
-    public onUpdate?() : void;
-    public onRedraw?() : void;
+    // NOTE: I could have onInit?() instead, but defining
+    // these make some Closure warning go away (although I 
+    // did lose 5 bytes in the process...)
+    public onInit() : void {};
+    public onLoad() : void {};
+    public onUpdate() : void {};
+    public onRedraw() : void {};
 }

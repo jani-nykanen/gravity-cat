@@ -11,12 +11,19 @@ import { Menu, MenuButton } from "./menu.js";
 import { LevelMenu } from "./levelmenu.js";
 import { Transition, TransitionType } from "./transition.js";
 import { Vector } from "./vector.js";
-
+import { TitleScreen } from "./titlescreen.js";
 
 const LEVEL_CLEAR_ANIMATION_TIME : number = 120;
 
 const WATER_COLORS : string[] = ["#92dbff", "#49b6ff", "#248fdb"];
 const WATER_YOFF : number[] = [0, 2, 8];
+
+const ENDING_TEXT : string =
+`   CONGRATULATIONS!
+
+YOU HAVE BEATEN THE GAME!
+I DID NOT HAVE ROOM FOR
+A PROPER ENDING. SORRY.`
 
 
 const enum Scene {
@@ -37,6 +44,7 @@ export class Game extends Program {
 
     private pauseMenu : Menu;
     private levelMenu : LevelMenu;
+    private titleScreen : TitleScreen;
 
     private transition : Transition;
 
@@ -44,9 +52,11 @@ export class Game extends Program {
     private levelClearTimer : number = 0.0;
     private levelClearInitiated : boolean = false;
 
+    private endingTimer : number = 0.0;
+
     private levelIndex : number = 1;
 
-    private scene : Scene = Scene.LevelMenu;
+    private scene : Scene = Scene.TitleScreen;
 
 
     constructor(audioCtx : AudioContext) {
@@ -66,7 +76,7 @@ export class Game extends Program {
         ]);
 
         // Redundant
-        this.puzzle = new Puzzle(LEVEL_DATA[0]);
+        this.puzzle = new Puzzle(LEVEL_DATA[this.levelIndex - 1]);
 
         this.pauseMenu = new Menu(
         [
@@ -80,6 +90,12 @@ export class Game extends Program {
 
                 this.puzzle.restart();
                 return true;
+            }),
+            new MenuButton(this.audio.getStateString(), () : boolean => {
+
+                this.audio.toggleAudio();
+                this.pauseMenu.changeMenuText(3, this.audio.getStateString());
+                return false;
             }),
             new MenuButton("QUIT", () : boolean => {
 
@@ -100,20 +116,40 @@ export class Game extends Program {
                 const cursorPos : Vector = this.levelMenu.getCursorCenter();
                 this.transition.activate(TransitionType.Circle, 1.0/30.0, true,
                     () : void => {
-                        this.levelClearInitiated = false;
-                        this.levelClearTimer = 0.0;
                         
                         this.scene = Scene.Game;
-                        this.levelIndex = i + 1;
-                        this.puzzle = new Puzzle(LEVEL_DATA[i]);
+                        this.changeLevel(i + 1);
 
                         this.transition.setCenter(this.canvas.width/2, this.canvas.height/2);
                     },
                     cursorPos.x, cursorPos.y
-                )
+                );
             });
 
+        this.titleScreen = new TitleScreen(this.audio, (newGame : boolean) : void => {
+
+            this.transition.activate(TransitionType.Circle, 1.0/30.0, true,
+                () : void => {
+                        
+                    if (!newGame) {
+
+                        this.levelMenu.loadProgress();
+                    }
+                    this.scene = Scene.LevelMenu;
+                }
+            );
+        });
         this.transition = new Transition(this.canvas.width, this.canvas.height);
+    }
+
+
+    private changeLevel(newLevel : number) : void {
+
+        this.levelIndex = newLevel;
+        this.puzzle = new Puzzle(LEVEL_DATA[newLevel - 1]);
+
+        this.levelClearInitiated = false;
+        this.levelClearTimer = 0.0;
     }
 
 
@@ -153,7 +189,21 @@ export class Game extends Program {
                 this.transition.activate(TransitionType.Fade, 1.0/20.0, true,
                     () : void => {
                         
+                        if (this.levelIndex == 13) {
+
+                            this.endingTimer = 0.0;
+                            this.scene = Scene.Ending;
+                            return;
+                        }
+
                         this.levelMenu.markLevelAsCleared(this.levelIndex - 1);
+
+                        if (this.levelMenu.everythingCleared()) {
+
+                            this.changeLevel(13);
+                            return;
+                        }
+
                         this.scene = Scene.LevelMenu;
                     }
                 );
@@ -171,6 +221,23 @@ export class Game extends Program {
         if (this.controller.getAction(Controls.Undo).state == InputState.Pressed) {
 
             this.puzzle.undo();
+        }
+    }
+
+
+    private updateEnding() : void {
+
+        const ENDING_TIME : number = 300;
+
+        this.endingTimer += this.tick;
+        if (this.endingTimer >= ENDING_TIME) {
+
+            this.transition.activate(TransitionType.Fade, 1.0/30.0, true,
+                () : void => {
+
+                    this.scene = Scene.LevelMenu;
+                }
+            )
         }
     }
 
@@ -248,12 +315,9 @@ export class Game extends Program {
         this.puzzle.draw(canvas, this.assets);
 
         canvas.moveTo();
-        for (let i : number = 0; i < 2; ++ i) {
-
-            canvas.drawText(this.assets.getBitmap(BitmapIndex.FontOutlinesWhite), `LEVEL ${this.levelIndex}`,
-                canvas.width/2, 5 - i, -7, 0, Align.Center, Math.PI*2, 2, this.backgroundTimer*Math.PI*6);
-        }
-
+        canvas.drawText(this.assets.getBitmap(BitmapIndex.FontOutlinesWhite), `LEVEL ${this.levelIndex}`,
+            canvas.width/2, 5, -7, 0, Align.Center, Math.PI*2, 2, this.backgroundTimer*Math.PI*6);
+        
         if (this.pauseMenu.isActive()) {
 
             this.pauseMenu.draw(canvas, this.assets, 2, 2, 0.50);
@@ -267,6 +331,18 @@ export class Game extends Program {
 
         
         // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Terrain));
+    }
+
+
+    private drawEnding() : void {
+
+        const canvas : RenderTarget = this.canvas;
+
+        canvas.clearScreen("#000000");
+
+        const bmpFont : Bitmap = this.assets.getBitmap(BitmapIndex.FontWhite);
+
+        canvas.drawText(bmpFont, ENDING_TEXT, canvas.width/2 - 25*3.5, 48, -1, 2);
     }
 
 
@@ -306,6 +382,16 @@ export class Game extends Program {
             this.levelMenu.update(this.controller, this.audio, this.assets, this.tick);
             break;
 
+        case Scene.Ending:
+
+            this.updateEnding();
+            break;
+
+        case Scene.TitleScreen:
+
+            this.titleScreen.update(this.controller, this.audio, this.assets, this.tick);
+            break;
+
         default:
             break;
         }
@@ -324,6 +410,17 @@ export class Game extends Program {
         case Scene.LevelMenu:
 
             this.levelMenu.draw(this.canvas, this.assets);
+            break;
+
+        case Scene.Ending:
+
+            this.drawEnding();
+            break;
+
+        case Scene.TitleScreen:
+
+            this.drawBackground();
+            this.titleScreen.draw(this.canvas, this.assets);
             break;
 
         default:

@@ -142,7 +142,7 @@ export class RenderTarget {
         dx : number = 0.0, dy : number = 0.0, 
         sx : number = 0.0, sy : number = 0.0, sw : number = bmp.width, sh : number = bmp.height,
         dw : number = sw, dh : number = sh,
-        centerx : number = dw/2.0, centery : number = dh/2.0, rotation? : number) : void {
+        centerx : number = dw/2.0, centery : number = dh/2.0, rotation : number | undefined = undefined) : void {
 
         sx |= 0;
         sy |= 0;

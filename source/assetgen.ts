@@ -254,7 +254,7 @@ const generateOutlinedFont = (fontBlack : Bitmap, fontColored : Bitmap) : Bitmap
 
             for (let i : number = -1; i <= 1; ++ i) {
 
-                for (let j : number = -1; j <= 1; ++ j) {
+                for (let j : number = -1; j <= 2; ++ j) {
 
                     if (i == 0 && j == 0) {
 
@@ -304,8 +304,14 @@ const generateBigText = (assets : Assets) : void => {
             [255, 219, 0],
             [219, 109, 0]
         ])
-
     assets.addBitmap(BitmapIndex.LevelClear, bmpLevelClear);
+
+    const bmpLogo : Bitmap = createBigText(
+        "GAME\nTITLE", "bold 40px Arial", 144, 128, 36, 4, [
+            [255, 146, 0],
+            [182, 36, 0]
+        ])
+    assets.addBitmap(BitmapIndex.Logo, bmpLogo);
 }
 
 

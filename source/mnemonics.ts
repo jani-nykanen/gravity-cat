@@ -15,6 +15,7 @@ export const enum BitmapIndex {
     Background = 8,
 
     LevelClear = 9,
+    Logo = 10,
 }
 
 

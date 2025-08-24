@@ -9,11 +9,24 @@ import { Assets } from "./assets.js";
 export type MenuButtonCallback = () => boolean;
 
 
-const BOX_COLORS : string[] = ["#00246d", "#929292", "#ffffff"];
+const BOX_COLORS : string[] = ["#00246d", "#929292", "#ffffff", "#000000"];
 
 
 const drawBox = (canvas : RenderTarget, dx : number, dy : number, dw : number, dh : number) : void => {
+    
+    const SHADOW_OFFSET : number = 2;
 
+    const extraThickness : number = BOX_COLORS.length - 1;
+
+    // Shadow
+    canvas.setColor("rgba(0,0,0,0.33)");
+    canvas.fillRect(
+        dx - extraThickness + SHADOW_OFFSET, 
+        dy - extraThickness + SHADOW_OFFSET, 
+        dw + extraThickness*2, 
+        dh + extraThickness*2);
+
+    // The box, THE BOX!
     for (let i : number = BOX_COLORS.length - 1; i >= 0 ; -- i) {
 
         canvas.setColor(BOX_COLORS[i]);
@@ -96,7 +109,8 @@ export class Menu {
     }
 
 
-    public update(controller : Controller, audio : AudioPlayer, assets : Assets, canQuit : boolean = false) : void {
+    public update(controller : Controller, audio : AudioPlayer, 
+        assets : Assets, canQuit : boolean = false) : void {
 
         if (!this.active) {
 

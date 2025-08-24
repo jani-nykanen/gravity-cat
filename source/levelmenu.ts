@@ -6,6 +6,7 @@ import { Vector } from "./vector.js";
 import { BitmapIndex, Controls, SampleIndex } from "./mnemonics.js";
 import { negMod } from "./math.js";
 import { approachValue } from "./utility.js";
+import { saveProgress, loadProgress } from "./savedata.js";
 
 
 const BACKGROUND_COLORS : string[] = ["#6db6ff", "#4992db"];
@@ -65,6 +66,8 @@ export class LevelMenu {
 
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+
+        this.computeCursorRenderPosition();
     }
 
 
@@ -156,10 +159,7 @@ export class LevelMenu {
                 canvas.setColor(colorArray[2]);
                 canvas.fillRect(dx + 1, dy + depthShift + 1, BOX_WIDTH - 2, BOX_HEIGHT - 2 );
 
-                for (let j : number = 0; j < 2; ++ j) {
-                
-                    canvas.drawText(bmpFont, `${i}`, dx + BOX_WIDTH/2, -j + dy + depthShift + BOX_HEIGHT/2 - 7, -8, 0, Align.Center);
-                }
+                canvas.drawText(bmpFont, `${i}`, dx + BOX_WIDTH/2, dy + depthShift + BOX_HEIGHT/2 - 7, -8, 0, Align.Center);
                 ++ i;
             }
         }
@@ -251,11 +251,8 @@ export class LevelMenu {
         this.drawBackground(canvas);
     
         // Header
-        for (let i : number = 0; i < 2; ++ i) {
-        
-            canvas.drawText(assets.getBitmap(BitmapIndex.FontOutlinesWhite), "SELECT A LEVEL",
-                    canvas.width/2, HEADER_Y - i, -7, 0, Align.Center, Math.PI*4, 2, this.backgroundTimer*Math.PI*2);
-        }
+        canvas.drawText(assets.getBitmap(BitmapIndex.FontOutlinesWhite), "SELECT A LEVEL",
+                canvas.width/2, HEADER_Y, -7, 0, Align.Center, Math.PI*4, 2, this.backgroundTimer*Math.PI*2);
 
         // Boxes
         this.drawBoxes(canvas, assets);
@@ -271,5 +268,26 @@ export class LevelMenu {
     public markLevelAsCleared(index : number) : void {
 
         this.clearedLevels[index] = true;
+        saveProgress(this.clearedLevels);
+    }
+
+
+    public everythingCleared() : boolean {
+
+        for (const v of this.clearedLevels) {
+
+            if (!v) {
+
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public loadProgress() : void {
+
+        this.clearedLevels.length = 0;
+        this.clearedLevels = loadProgress();
     }
 }
