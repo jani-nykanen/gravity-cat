@@ -364,6 +364,8 @@ export class Game extends Program {
 
     public onUpdate() : void {
         
+        const TITLE_SCREEN_BACKGROUND_SPEED : number = 1.0/480;
+
         if (this.transition.isActive()) {
 
             this.transition.update(this.tick);
@@ -389,6 +391,7 @@ export class Game extends Program {
 
         case Scene.TitleScreen:
 
+            this.backgroundTimer = (this.backgroundTimer + TITLE_SCREEN_BACKGROUND_SPEED*this.tick) % 1.0;
             this.titleScreen.update(this.controller, this.audio, this.assets, this.tick);
             break;
 

@@ -51,7 +51,7 @@ export class TitleScreen {
 
         const TEXT_ANIMATION_SPEED : number = Math.PI*2/90.0;
 
-        this.textAnimationTimer = (this.textAnimationTimer + TEXT_ANIMATION_SPEED*tick) % (Math.PI*2);
+        this.textAnimationTimer = (this.textAnimationTimer + TEXT_ANIMATION_SPEED*tick) % (Math.PI*4);
 
         if (!this.enterPressed) {
 
@@ -73,7 +73,9 @@ export class TitleScreen {
         canvas.fillRect();
 
         const bmpLogo : Bitmap = assets.getBitmap(BitmapIndex.Logo);
-        canvas.drawBitmap(bmpLogo, Flip.None, canvas.width/2 - bmpLogo.width/2, 16);
+        canvas.drawBitmap(bmpLogo, Flip.None, 
+            canvas.width/2 - bmpLogo.width/2, 
+            16 + Math.round(Math.sin(this.textAnimationTimer/2)*8));
 
         const bmpFontYellow : Bitmap = assets.getBitmap(BitmapIndex.FontYellow);
         canvas.drawText(bmpFontYellow, "*2025 JANI NYK@NEN", canvas.width/2, canvas.height - 10, -1, 0, Align.Center);
