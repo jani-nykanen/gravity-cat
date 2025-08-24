@@ -73,9 +73,9 @@ export class TitleScreen {
         canvas.fillRect();
 
         const bmpLogo : Bitmap = assets.getBitmap(BitmapIndex.Logo);
-        canvas.drawBitmap(bmpLogo, Flip.None, 
+        canvas.drawHorizontallyWavingBitmap(bmpLogo, 2, Math.PI*12, this.textAnimationTimer, Flip.None, 
             canvas.width/2 - bmpLogo.width/2, 
-            16 + Math.round(Math.sin(this.textAnimationTimer/2)*8));
+            24 + Math.round(Math.sin(this.textAnimationTimer/2)*8));
 
         const bmpFontYellow : Bitmap = assets.getBitmap(BitmapIndex.FontYellow);
         canvas.drawText(bmpFontYellow, "*2025 JANI NYK@NEN", canvas.width/2, canvas.height - 10, -1, 0, Align.Center);

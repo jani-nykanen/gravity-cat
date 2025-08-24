@@ -303,15 +303,26 @@ const generateBigText = (assets : Assets) : void => {
         "LEVEL\nCLEAR!", "bold 22px Arial", 96, 48, 20, 3, [
             [255, 219, 0],
             [219, 109, 0]
-        ])
+        ]);
     assets.addBitmap(BitmapIndex.LevelClear, bmpLevelClear);
 
-    const bmpLogo : Bitmap = createBigText(
-        "GAME\nTITLE", "bold 40px Arial", 144, 128, 36, 4, [
+    const bmpLogoUpper : Bitmap = createBigText(
+        "GRAVITY", "bold 36px Arial", 160, 40, 32, 5, [
             [255, 146, 0],
             [182, 36, 0]
-        ])
-    assets.addBitmap(BitmapIndex.Logo, bmpLogo);
+        ]);
+    const bmpLogoLower : Bitmap = createBigText(
+        "CATASTROPHE", "bold 24px Arial", 192, 32, 24, 4, [
+            [255, 146, 0],
+            [182, 36, 0]
+        ]);
+
+    const canvas : RenderTarget = new RenderTarget(192, 64);
+
+    canvas.drawBitmap(bmpLogoUpper, Flip.None, 16, 0);
+    canvas.drawBitmap(bmpLogoLower, Flip.None, 0, 32);
+
+    assets.addBitmap(BitmapIndex.Logo, canvas.toBitmap());
 }
 
 
@@ -372,7 +383,7 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
             Ramp.Instant)
         );
 
-     for (let i : number = 0; i < 2; ++ i) {
+    for (let i : number = 0; i < 2; ++ i) {
 
         assets.addSample(i == 0 ? SampleIndex.Select : SampleIndex.Choose,
             audio.createSample( 
@@ -383,6 +394,24 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
             Ramp.Instant)
         );
     }
+
+    assets.addSample(SampleIndex.Undo,
+        audio.createSample( 
+        [128, 5, 1.0,
+         96, 3, 0.40], 
+        0.50,
+        OscType.Sawtooth, 
+        Ramp.Instant)
+    );
+
+    assets.addSample(SampleIndex.Restart,
+        audio.createSample( 
+        [144, 6, 0.90,
+         96, 6, 0.20], 
+        0.40,
+        OscType.Square, 
+        Ramp.Instant)
+    );
 }
 
 

@@ -129,4 +129,10 @@ export class Transition {
 
         this.center.setValues(x, y);
     }
+
+
+    public deactivate() : void {
+
+        this.active = false;
+    }
 }

@@ -23,7 +23,12 @@ const ENDING_TEXT : string =
 
 YOU HAVE BEATEN THE GAME!
 I DID NOT HAVE ROOM FOR
-A PROPER ENDING. SORRY.`
+A PROPER ENDING. SORRY.`;
+
+
+const CONTROLS_APPEAR_TIME : number = 30;
+
+const BOX_COLORS : string[] = ["#000049", "#929292", "#ffffff"];
 
 
 const enum Scene {
@@ -33,6 +38,7 @@ const enum Scene {
     Intro = 2,
     TitleScreen = 3,
     Ending = 4,
+    ControlGuide = 5,
 }
 
 
@@ -131,10 +137,18 @@ export class Game extends Program {
             this.transition.activate(TransitionType.Circle, 1.0/30.0, true,
                 () : void => {
                         
-                    if (!newGame) {
+                    if (newGame) {
 
-                        this.levelMenu.loadProgress();
+                        this.transition.deactivate();
+
+                        this.scene = Scene.ControlGuide;
+
+                        this.introPhase = 0;
+                        this.introTimer = 0.0;
+                        return;
                     }
+
+                    this.levelMenu.loadProgress();
                     this.scene = Scene.LevelMenu;
                 }
             );
@@ -214,12 +228,14 @@ export class Game extends Program {
         // Restart
         if (this.controller.getAction(Controls.Restart).state == InputState.Pressed) {
 
+            this.audio.playSample(this.assets.getSample(SampleIndex.Restart), 0.60);
             this.puzzle.restart();
         }
 
         // Undo
         if (this.controller.getAction(Controls.Undo).state == InputState.Pressed) {
 
+            this.audio.playSample(this.assets.getSample(SampleIndex.Undo), 0.50);
             this.puzzle.undo();
         }
     }
@@ -274,6 +290,36 @@ export class Game extends Program {
                     this.introTimer = 0;
                 }
             );
+        }
+    }
+
+
+    private updateControlsScreen() : void {
+
+        if (this.introPhase == 1) {
+
+             if (this.controller.anythingPressed()) {
+
+                this.audio.playSample(this.assets.getSample(SampleIndex.Select), 0.50);
+
+                ++ this.introPhase;
+                this.introTimer = 0.0;
+            }
+            return;
+        }
+
+        this.introTimer += this.tick;
+        if (this.introTimer >= CONTROLS_APPEAR_TIME) {
+
+            this.introTimer = 0.0;
+            ++ this.introPhase;
+
+
+            if (this.introPhase == 3) {
+
+                this.scene = Scene.LevelMenu;
+                this.transition.activate(TransitionType.Circle, 1.0/30.0, false);
+            }
         }
     }
 
@@ -420,6 +466,58 @@ export class Game extends Program {
     }
 
 
+    private drawControlsScreen() : void {
+
+        const BOX_WIDTH : number = 192;
+        const BOX_HEIGHT : number = 128;
+
+        const canvas : RenderTarget = this.canvas;
+
+        const bmpFontWhite : Bitmap = this.assets.getBitmap(BitmapIndex.FontWhite);
+        const bmpFontYellow : Bitmap = this.assets.getBitmap(BitmapIndex.FontYellow);
+
+        canvas.clearScreen("#000000");
+
+        // Box
+        const dx : number = canvas.width/2 - BOX_WIDTH/2;
+        let dy : number = canvas.height/2 - BOX_HEIGHT/2;
+
+        const t : number = this.introTimer/CONTROLS_APPEAR_TIME;
+
+        if (this.introPhase == 0) {
+
+            dy += canvas.height*(1.0 - t);
+        }
+        else if (this.introPhase == 2) {
+
+            dy -= canvas.height*t;
+        }
+
+        canvas.moveTo(dx, dy);
+
+        for (let i : number = BOX_COLORS.length - 1; i >= 0 ; -- i) {
+
+            canvas.setColor(BOX_COLORS[i]);
+            canvas.fillRect(-i, -i, BOX_WIDTH + i*2, BOX_HEIGHT + i*2);
+        }
+
+        // List of controls
+        // TODO: Not very elegant way to do this...
+        canvas.drawText(bmpFontWhite, "CONTROLS", BOX_WIDTH/2, 8, -1, 0, Align.Center);
+
+        canvas.drawText(bmpFontYellow, "CONTROL GRAVITY:", BOX_WIDTH/2, 32, -1, 0, Align.Center);
+        canvas.drawText(bmpFontWhite, "ARROW KEYS OR WASD", BOX_WIDTH/2, 44, -1, 0, Align.Center);
+
+        canvas.drawText(bmpFontYellow, "UNDO MOVE:", BOX_WIDTH/2, 64, -1, 0, Align.Center);
+        canvas.drawText(bmpFontWhite, "BACKSPACE", BOX_WIDTH/2, 76, -1, 0, Align.Center);
+
+        canvas.drawText(bmpFontYellow, "RESTART STAGE:", BOX_WIDTH/2, 96, -1, 0, Align.Center);
+        canvas.drawText(bmpFontWhite, "R", BOX_WIDTH/2, 108, -1, 0, Align.Center);
+
+        canvas.moveTo();
+    }
+
+
     public onInit() : void {
         
         this.assets.loadBitmaps(
@@ -474,6 +572,11 @@ export class Game extends Program {
             this.updateIntro();
             break;
 
+        case Scene.ControlGuide:
+
+            this.updateControlsScreen();
+            break;
+
         default:
             break;
         }
@@ -508,6 +611,11 @@ export class Game extends Program {
         case Scene.Intro:
 
             this.drawIntro();
+            break;
+
+        case Scene.ControlGuide:
+
+            this.drawControlsScreen();
             break;
 
         default:
