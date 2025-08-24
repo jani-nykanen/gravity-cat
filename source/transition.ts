@@ -40,8 +40,11 @@ export class Transition {
     }
 
 
-    public activate(type : TransitionType, speed : number, fadeIn : boolean, event : TransitionCallback,
-        centerx : number = this.screenWidth/2.0, centery : number = this.screenHeight/2.0) : void {
+    public activate(type : TransitionType, 
+        speed : number, fadeIn : boolean, 
+        event : TransitionCallback = () => {},
+        centerx : number = this.screenWidth/2.0, 
+        centery : number = this.screenHeight/2.0) : void {
 
         this.type = type;
         this.speed = speed;

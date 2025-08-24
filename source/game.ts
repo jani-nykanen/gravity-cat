@@ -33,7 +33,6 @@ const enum Scene {
     Intro = 2,
     TitleScreen = 3,
     Ending = 4,
-    StoryIntro = 5,
 }
 
 
@@ -52,11 +51,12 @@ export class Game extends Program {
     private levelClearTimer : number = 0.0;
     private levelClearInitiated : boolean = false;
 
-    private endingTimer : number = 0.0;
+    private introTimer : number = 0.0;
+    private introPhase : number = 0;
 
     private levelIndex : number = 1;
 
-    private scene : Scene = Scene.TitleScreen;
+    private scene : Scene = Scene.Intro;
 
 
     constructor(audioCtx : AudioContext) {
@@ -191,7 +191,7 @@ export class Game extends Program {
                         
                         if (this.levelIndex == 13) {
 
-                            this.endingTimer = 0.0;
+                            this.introTimer = 0.0;
                             this.scene = Scene.Ending;
                             return;
                         }
@@ -229,8 +229,8 @@ export class Game extends Program {
 
         const ENDING_TIME : number = 300;
 
-        this.endingTimer += this.tick;
-        if (this.endingTimer >= ENDING_TIME) {
+        this.introTimer += this.tick;
+        if (this.introTimer >= ENDING_TIME) {
 
             this.transition.activate(TransitionType.Fade, 1.0/30.0, true,
                 () : void => {
@@ -238,6 +238,42 @@ export class Game extends Program {
                     this.scene = Scene.LevelMenu;
                 }
             )
+        }
+    }
+
+
+    private updateIntro() : void {
+
+        const WAIT_TIME : number = 90;
+
+        if (this.introPhase == 0) {
+
+            if (this.controller.anythingPressed()) {
+
+                this.audio.playSample(this.assets.getSample(SampleIndex.Select), 0.50);
+
+                ++ this.introPhase;
+                this.transition.activate(TransitionType.Fade, 1.0/20.0, false, () => {});
+            }
+            return;
+        }
+
+        this.introTimer += this.tick;
+        if (this.introTimer >= WAIT_TIME || this.controller.anythingPressed()) {
+
+            this.transition.activate(TransitionType.Fade, 1.0/20.0, true,
+                () : void => {
+
+                    ++ this.introPhase;
+                    if (this.introPhase == 3) {
+
+                        this.transition.activate(TransitionType.Circle, 1.0/30.0, false, () => {});
+                        this.scene = Scene.TitleScreen;
+                        return;
+                    }
+                    this.introTimer = 0;
+                }
+            );
         }
     }
 
@@ -346,6 +382,44 @@ export class Game extends Program {
     }
 
 
+    private drawIntro() : void {
+
+        const canvas : RenderTarget = this.canvas;
+
+        canvas.clearScreen("#000000");
+
+        const bmpFont : Bitmap = this.assets.getBitmap(BitmapIndex.FontWhite);
+        const bmpFontYellow : Bitmap = this.assets.getBitmap(BitmapIndex.FontYellow);
+
+        const centerx : number = canvas.width/2;
+        const centery : number = canvas.height/2;
+
+        switch (this.introPhase) {
+
+        case 0:
+
+            canvas.drawText(bmpFont, "PRESS ANY KEY TO START", centerx, centery - 4, -1, 0, Align.Center);
+            break;
+
+        case 1:
+
+            canvas.drawText(bmpFontYellow, "A GAME BY", centerx, centery - 10, -1, 0, Align.Center);
+            canvas.drawText(bmpFont, "JANI NYK@NEN", centerx, centery + 2, -1, 0, Align.Center);
+            break;
+
+
+        case 2:
+
+            canvas.drawText(bmpFontYellow, "CREATED FOR", centerx, centery - 10, -1, 0, Align.Center);
+            canvas.drawText(bmpFont, "JS13K 2025", centerx, centery + 2, -1, 0, Align.Center);
+            break;
+
+        default:
+            break;
+        }
+    }
+
+
     public onInit() : void {
         
         this.assets.loadBitmaps(
@@ -395,6 +469,11 @@ export class Game extends Program {
             this.titleScreen.update(this.controller, this.audio, this.assets, this.tick);
             break;
 
+        case Scene.Intro:
+
+            this.updateIntro();
+            break;
+
         default:
             break;
         }
@@ -424,6 +503,11 @@ export class Game extends Program {
 
             this.drawBackground();
             this.titleScreen.draw(this.canvas, this.assets);
+            break;
+
+        case Scene.Intro:
+
+            this.drawIntro();
             break;
 
         default:
