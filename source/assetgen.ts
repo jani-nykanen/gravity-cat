@@ -343,7 +343,7 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
             [128, 2, 0.80,
             160, 3, 1.0,  
             96, 12, 0.60],
-            0.70,
+            0.60,
             OscType.Square, 
             Ramp.Exponential)
         );
@@ -352,7 +352,7 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
         audio.createSample(
             [112, 4, 1.0,
             80, 2, 0.30], 
-            0.50,
+            0.40,
             OscType.Square, 
             Ramp.Instant)
         );
@@ -362,7 +362,7 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
             [128, 4, 1.0,
             112, 3, 0.90,
             80, 12, 0.60], 
-            0.50,
+            0.40,
             OscType.Sawtooth, 
             Ramp.Linear)
         );
@@ -378,7 +378,7 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
             Note.F3, 15, 1.0,
             Note.A3, 40, 0.80,
             ], 
-            0.35,
+            0.30,
             OscType.Square, 
             Ramp.Instant)
         );
@@ -388,8 +388,8 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
         assets.addSample(i == 0 ? SampleIndex.Select : SampleIndex.Choose,
             audio.createSample( 
             [128 - i*8, 6 + i*2, 1.0,
-            96 - i*8, 4 + i*2, 0.30], 
-            0.30 - i*0.05,
+            96 - i*8, 2 + i*4, 0.30], 
+            0.25,
             OscType.Square, 
             Ramp.Instant)
         );
@@ -399,7 +399,7 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
         audio.createSample( 
         [128, 5, 1.0,
          96, 3, 0.40], 
-        0.50,
+        0.40,
         OscType.Sawtooth, 
         Ramp.Instant)
     );
@@ -411,6 +411,14 @@ const generateSamples = (assets : Assets, audio : AudioPlayer) : void => {
         0.40,
         OscType.Square, 
         Ramp.Instant)
+    );
+
+    assets.addSample(SampleIndex.Pause,
+        audio.createSample( 
+            [136, 10, 0.90], 
+            0.30,
+            OscType.Square, 
+            Ramp.Instant)
     );
 }
 

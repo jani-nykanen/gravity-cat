@@ -32,6 +32,7 @@ export const enum SampleIndex {
     Choose = 7,
     Undo = 8,
     Restart = 9,
+    Pause = 10,
 }
 
 

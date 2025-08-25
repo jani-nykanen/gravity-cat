@@ -22,8 +22,8 @@ const ENDING_TEXT : string =
 `   CONGRATULATIONS!
 
 YOU HAVE BEATEN THE GAME!
-I DID NOT HAVE ROOM FOR
-A PROPER ENDING. SORRY.`;
+I HEREBY DECLARE YOU THE
+MASTER OF THE GRAVITY.`;
 
 
 const CONTROLS_APPEAR_TIME : number = 30;
@@ -178,7 +178,7 @@ export class Game extends Program {
         if (!this.puzzle.hasCleared() &&
             this.controller.getAction(Controls.Pause).state == InputState.Pressed) {
 
-            this.audio.playSample(this.assets.getSample(SampleIndex.Choose), 0.60);
+            this.audio.playSample(this.assets.getSample(SampleIndex.Pause), 0.60);
             this.pauseMenu.activate(0);
             return;
         }
@@ -364,7 +364,7 @@ export class Game extends Program {
     
         // Clouds
         const loop : number = Math.ceil(canvas.width/bmp.width) + 1;
-        const shiftx : number = this.backgroundTimer*bmp.width;
+        const shiftx : number = (this.backgroundTimer*bmp.width) | 0;
         for (let x : number = 0; x < loop; ++ x) {
     
             canvas.drawBitmap(bmp, Flip.None, x*bmp.width - shiftx, CLOUD_Y, 0, 0, 128, 64);
@@ -422,7 +422,7 @@ export class Game extends Program {
 
         const bmpFont : Bitmap = this.assets.getBitmap(BitmapIndex.FontWhite);
 
-        canvas.drawText(bmpFont, ENDING_TEXT, canvas.width/2 - 25*3.5, 48, -1, 2);
+        canvas.drawText(bmpFont, ENDING_TEXT, canvas.width/2 - 25*3.5, 64, -1, 4);
     }
 
 

@@ -57,7 +57,7 @@ export class TitleScreen {
 
             if (controller.getAction(Controls.Select).state == InputState.Pressed) {
 
-                audio.playSample(assets.getSample(SampleIndex.Choose), 0.60);
+                audio.playSample(assets.getSample(SampleIndex.Pause), 0.70);
                 this.enterPressed = true;
             }
             return;
