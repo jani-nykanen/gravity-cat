@@ -68,17 +68,15 @@ export class Game extends Program {
     constructor(audioCtx : AudioContext) {
 
         super(audioCtx, 256, 192, [
-            {id: Controls.Right, keys: ["ArrowRight", "KeyD"], prevent: true},
-            {id: Controls.Left, keys: ["ArrowLeft", "KeyA"],  prevent: true},
-            {id: Controls.Up, keys: ["ArrowUp", "KeyW"],  prevent: true},
-            {id: Controls.Down, keys: ["ArrowDown", "KeyS"],  prevent: true},
-            {id: Controls.Select, keys: ["Space", "Enter"],  prevent: true},
-            // TODO: Add support for "actual R", not just the key that happens
-            // to be in the place of R
-            {id: Controls.Restart, keys: ["KeyR"], prevent: true},
-            {id: Controls.Undo, keys: ["KeyZ", "Backspace"], prevent: true},
-            {id: Controls.Back, keys: ["Escape"], prevent: false},
-            {id: Controls.Pause, keys: ["Escape", "Enter"], prevent: false}
+            {id: Controls.Right, keys: ["ArrowRight", "KeyD"], specialKeys: [], prevent: true},
+            {id: Controls.Left, keys: ["ArrowLeft", "KeyA"], specialKeys: [], prevent: true},
+            {id: Controls.Up, keys: ["ArrowUp", "KeyW"], specialKeys: [], prevent: true},
+            {id: Controls.Down, keys: ["ArrowDown", "KeyS"], specialKeys: [], prevent: true},
+            {id: Controls.Select, keys: ["Space", "Enter"], specialKeys: [], prevent: true},
+            {id: Controls.Restart, keys: [], specialKeys: ["r", "R"], prevent: true},
+            {id: Controls.Undo, keys: ["Backspace"], specialKeys: [], prevent: true},
+            {id: Controls.Back, keys: ["Escape"], specialKeys: [], prevent: false},
+            {id: Controls.Pause, keys: ["Escape", "Enter"], specialKeys: [], prevent: false}
         ]);
 
         // Redundant

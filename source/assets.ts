@@ -78,4 +78,10 @@ export class Assets {
         }
         return sample;
     }
+
+
+    public getLoadRatio() : number {
+
+        return this.totalCount == 0 ? 1.0 : this.loadedCount/this.totalCount;
+    }
 }
