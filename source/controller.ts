@@ -96,6 +96,9 @@ export class Controller {
             this.inputEvent(this.keyStates, ev.code, ev.timeStamp, false);
             this.inputEvent(this.specialKeyStates, ev.key, ev.timeStamp, false);
         });
+
+        window.addEventListener("mousemove", (ev : MouseEvent) : void => window.focus());
+        window.addEventListener("mousedown", (ev : MouseEvent) : void => window.focus());
     }
 
 

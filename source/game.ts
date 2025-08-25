@@ -12,6 +12,7 @@ import { LevelMenu } from "./levelmenu.js";
 import { Transition, TransitionType } from "./transition.js";
 import { Vector } from "./vector.js";
 import { TitleScreen } from "./titlescreen.js";
+import { savedataExists } from "./savedata.js";
 
 const LEVEL_CLEAR_ANIMATION_TIME : number = 120;
 
@@ -135,7 +136,7 @@ export class Game extends Program {
             this.transition.activate(TransitionType.Circle, 1.0/30.0, true,
                 () : void => {
                         
-                    if (newGame) {
+                    if (newGame || !savedataExists()) {
 
                         this.transition.deactivate();
 
@@ -467,7 +468,7 @@ export class Game extends Program {
     private drawControlsScreen() : void {
 
         const BOX_WIDTH : number = 192;
-        const BOX_HEIGHT : number = 128;
+        const BOX_HEIGHT : number = 160;
 
         const canvas : RenderTarget = this.canvas;
 
@@ -511,6 +512,9 @@ export class Game extends Program {
 
         canvas.drawText(bmpFontYellow, "RESTART STAGE:", BOX_WIDTH/2, 96, -1, 0, Align.Center);
         canvas.drawText(bmpFontWhite, "R", BOX_WIDTH/2, 108, -1, 0, Align.Center);
+
+        canvas.drawText(bmpFontYellow, "PAUSE MENU:", BOX_WIDTH/2, 128, -1, 0, Align.Center);
+        canvas.drawText(bmpFontWhite, "ENTER OR ESCAPE", BOX_WIDTH/2, 140, -1, 0, Align.Center);
 
         canvas.moveTo();
     }

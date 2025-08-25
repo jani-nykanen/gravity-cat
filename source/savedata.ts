@@ -24,3 +24,15 @@ export const loadProgress = () : boolean[] => {
     catch(e) {}
     return (new Array<boolean> (12)).fill(false);
 }
+
+
+export const savedataExists = () : boolean => {
+
+    try {
+
+        return window["localStorage"]["getItem"](LOCALSTORAGE_KEY) != null;
+    }
+    catch(e){}
+
+    return false;
+}

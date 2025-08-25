@@ -195,4 +195,10 @@ export class Menu {
 
         return this.active;
     }
+
+
+    public setCursor(pos : number) : void {
+
+        this.cursorPos = negMod(pos, this.buttons.length - 1);
+    }
 }

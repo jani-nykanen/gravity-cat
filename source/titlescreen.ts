@@ -5,6 +5,7 @@ import { Assets } from "./assets.js";
 import { Vector } from "./vector.js";
 import { BitmapIndex, Controls, SampleIndex } from "./mnemonics.js";
 import { Menu, MenuButton } from "./menu.js";
+import { savedataExists } from "./savedata.js";
 
 
 export type TitleScreenCallback = (newGame : boolean) => void;
@@ -44,6 +45,11 @@ export class TitleScreen {
         true);
 
         this.startGameEvent = startGameEvent;
+
+        if (savedataExists()) {
+
+            this.menu.setCursor(1);
+        }
     }
 
 
