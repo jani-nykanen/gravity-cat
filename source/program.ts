@@ -34,29 +34,6 @@ export class Program {
     }
 
 
-    private drawLoadingScreen() : void {
-
-        const OUTLINE : number = 1;
-        const WIDTH : number  = 80;
-        const HEIGHT : number  = 12;
-
-        const p : number = this.assets.getLoadRatio();
-
-        const canvas : RenderTarget = this.canvas;
-
-        const dx : number = canvas.width/2 - WIDTH/2;
-        const dy : number = canvas.height/2 - HEIGHT/2;
-
-        canvas.clearScreen("#000000");
-        canvas.setColor("#ffffff");
-        canvas.fillRect(dx, dy, WIDTH, HEIGHT);
-        canvas.setColor("#000000");
-        canvas.fillRect(dx + OUTLINE, dy + OUTLINE, WIDTH - OUTLINE*2, HEIGHT - OUTLINE*2);
-        canvas.setColor("#ffffff");
-        canvas.fillRect(dx + OUTLINE*2, dy + OUTLINE*2, (WIDTH - OUTLINE*4)*p, HEIGHT - OUTLINE*4);
-    }
-
-
     public loop(ts : number) : void {
 
         const MAX_REFRESH_COUNT : number = 5; 
@@ -94,16 +71,9 @@ export class Program {
             }
         }
 
-        if (refreshScreen) {
+        if (refreshScreen && loaded) {
 
-            if (loaded) {
-
-                this.onRedraw();
-            }
-            else {
-
-                this.drawLoadingScreen();
-            }
+            this.onRedraw();
         }
 
         window.requestAnimationFrame((ts : number) => this.loop(ts));

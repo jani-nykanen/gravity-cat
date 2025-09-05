@@ -69,7 +69,7 @@ const PALETTE_TABLE : number[] = [
 
     0b100010000, // L Darker brown
 
-    0b111111010, // M Yellow
+    0b111111001, // M Yellow
 ];
 
 
@@ -299,28 +299,30 @@ const generateFonts = (assets : Assets, rgb333 : PaletteLookup) : void => {
 
 const generateBigText = (assets : Assets) : void => {
 
+    // Clear text
     const bmpLevelClear : Bitmap = createBigText(
-        "LEVEL\nCLEAR!", "bold 22px Arial", 96, 48, 20, 3, [
+        "LEVEL\nCLEAR!", "bold 24px Arial", 96, 64, 28, 4, [
             [255, 219, 0],
             [219, 109, 0]
         ]);
     assets.addBitmap(BitmapIndex.LevelClear, bmpLevelClear);
 
+    // Logo
     const bmpLogoUpper : Bitmap = createBigText(
-        "GRAVITY", "bold 36px Arial", 160, 40, 32, 5, [
+        "GRAVITY", "bold 32px Arial", 160, 40, 32, 5, [
             [255, 146, 0],
             [182, 36, 0]
         ]);
     const bmpLogoLower : Bitmap = createBigText(
-        "CATASTROPHE", "bold 24px Arial", 192, 32, 24, 4, [
+        "CAT", "bold 48px Arial", 160, 64, 48, 6, [
             [255, 146, 0],
             [182, 36, 0]
-        ]);
+        ], 1);
 
-    const canvas : RenderTarget = new RenderTarget(192, 64);
+    const canvas : RenderTarget = new RenderTarget(192, 128);
 
     canvas.drawBitmap(bmpLogoUpper, Flip.None, 16, 0);
-    canvas.drawBitmap(bmpLogoLower, Flip.None, 0, 32);
+    canvas.drawBitmap(bmpLogoLower, Flip.None, 16, 28);
 
     assets.addBitmap(BitmapIndex.Logo, canvas.toBitmap());
 }

@@ -26,6 +26,12 @@ YOU HAVE BEATEN THE GAME!
 I HEREBY DECLARE YOU THE
 MASTER OF THE GRAVITY.`;
 
+const HINT_WIDTH : number = 352;
+const HINTS : string[] = [
+    "   HINT: COLLECT ALL GEMS TO WIN THE STAGE.",
+    "   HINT: YOU NEED TO KEEP ALL HUMANS ALIVE."
+]
+
 
 const CONTROLS_APPEAR_TIME : number = 30;
 
@@ -60,6 +66,8 @@ export class Game extends Program {
 
     private introTimer : number = 0.0;
     private introPhase : number = 0;
+
+    private hintTimer : number = 0;
 
     private levelIndex : number = 1;
 
@@ -124,6 +132,7 @@ export class Game extends Program {
                         
                         this.scene = Scene.Game;
                         this.changeLevel(i + 1);
+                        this.hintTimer = 0;
 
                         this.transition.setCenter(this.canvas.width/2, this.canvas.height/2);
                     },
@@ -168,6 +177,7 @@ export class Game extends Program {
 
     private updateGameScene() : void {
         
+        const HINT_SPEED : number = 0.25;
         const BACKGROUND_ANIMATION_SPEED : number = 1.0/240.0;
 
         if (this.pauseMenu.isActive()) {
@@ -175,6 +185,8 @@ export class Game extends Program {
             this.pauseMenu.update(this.controller, this.audio, this.assets, true);
             return;
         }
+
+        this.hintTimer = (this.hintTimer + HINT_SPEED*this.tick) % HINT_WIDTH;
 
         if (!this.puzzle.hasCleared() &&
             this.controller.getAction(Controls.Pause).state == InputState.Pressed) {
@@ -337,7 +349,7 @@ export class Game extends Program {
         const t : number = Math.min(1.0, this.levelClearTimer/LEVEL_CLEAR_ANIMATION_STOP_TIME);
         const shiftx : number = (canvas.width/2 + bmpLevelClear.width/2)*(1.0 - t);
         
-        canvas.setColor("rgba(0,0,0,0.33)");
+        canvas.setColor("rgba(0,0,0,0.40)");
         canvas.fillRect();
 
         for (let i : number = 0; i < 2; ++ i) {
@@ -385,6 +397,28 @@ export class Game extends Program {
     }
 
 
+    private drawHint() : void {
+
+        const canvas : RenderTarget = this.canvas;
+
+        if (this.levelIndex > HINTS.length) {
+
+            return;
+        }
+
+        const bmpFontYellow : Bitmap = this.assets.getBitmap(BitmapIndex.FontYellow);
+
+        canvas.setColor("rgba(0,0,0,0.33)");
+        canvas.fillRect(0, canvas.height - 20, canvas.width, 16);
+
+        for (let i : number = 0; i < 2; ++ i) {
+
+            canvas.drawText(bmpFontYellow, HINTS[this.levelIndex - 1], 
+                -this.hintTimer + i*HINT_WIDTH, canvas.height - 16, -1);
+        }
+    }
+
+
     private drawGameScene() : void {
         
         const canvas : RenderTarget = this.canvas;
@@ -399,6 +433,8 @@ export class Game extends Program {
         canvas.drawText(this.assets.getBitmap(BitmapIndex.FontOutlinesWhite), `LEVEL ${this.levelIndex}`,
             canvas.width/2, 5, -7, 0, Align.Center, Math.PI*2, 2, this.backgroundTimer*Math.PI*6);
         
+        this.drawHint();
+
         if (this.pauseMenu.isActive()) {
 
             this.pauseMenu.draw(canvas, this.assets, 2, 2, 0.50);
@@ -409,7 +445,6 @@ export class Game extends Program {
 
             this.drawLevelClearScreen();
         }
-
         
         // canvas.drawBitmap(this.assets.getBitmap(BitmapIndex.Terrain));
     }
@@ -443,7 +478,7 @@ export class Game extends Program {
 
         case 0:
 
-            canvas.drawText(bmpFont, "PRESS ANY KEY TO START", centerx, centery - 4, -1, 0, Align.Center);
+            canvas.drawText(bmpFont, "PRESS ANY KEY", centerx, centery - 4, -1, 0, Align.Center);
             break;
 
         case 1:

@@ -86,7 +86,7 @@ export const cropBitmap = (source : Bitmap, sx : number, sy : number, sw : numbe
 export const createBigText = (text : string, font : string, 
     width : number, height : number, fontHeight : number, depth : number,
     colors : [[number, number, number], [number, number, number]],
-    threshold : number = 127) : Bitmap => {
+    thickness : number = 0, threshold : number = 127) : Bitmap => {
 
     const canvas : HTMLCanvasElement = createEmptyCanvas(width, height);
     const ctx : CanvasRenderingContext2D = canvas.getContext("2d")!;
@@ -103,7 +103,17 @@ export const createBigText = (text : string, font : string,
         let line : number = 0;
         for (const l of lines) {
 
-            ctx.fillText(l, width/2, y + (line + 1)*fontHeight);
+            for (let i : number = -thickness; i <= thickness; ++ i) {
+
+                for (let j : number = -thickness; j <= thickness; ++ j) {
+
+                    if (Math.abs(i) == Math.abs(j) && i != 0) {
+
+                        continue;
+                    }
+                    ctx.fillText(l, width/2 + i, y + (line + 1)*fontHeight + j);
+                }
+            }
             ++ line;
         }
     }
