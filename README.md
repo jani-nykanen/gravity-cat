@@ -1,4 +1,4 @@
-# Gravity Cat(astrophe)
+# Gravity Cat
 
 A puzzle game made for js13k 2025.
 
