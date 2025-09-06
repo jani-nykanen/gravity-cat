@@ -157,6 +157,17 @@ export class Game extends Program {
                     }
 
                     this.levelMenu.loadProgress();
+                    if (this.levelMenu.everythingCleared()) {
+
+                        this.changeLevel(13);
+                        this.hintTimer = 0;
+
+                        this.scene = Scene.Game;
+                        // this.transition.setCenter(this.canvas.width/2, this.canvas.height/2);
+
+                        return;
+                    }
+
                     this.scene = Scene.LevelMenu;
                 }
             );
